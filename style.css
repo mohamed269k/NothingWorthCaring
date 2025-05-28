@@ -1,4 +1,4 @@
-#42445A/* style.css */
+/* style.css */
 /* Base styles & reset (Desktop-first approach) */
 * {
     margin: 0;
@@ -39,16 +39,17 @@ body[dir="ar"] {
     color: white;
     padding: 40px; /* Increased padding */
     text-align: center;
-    position: relative;
+    position: relative; /* For the language selector */
     overflow: hidden;
-    display: flex; /* Use flexbox for better alignment in header */
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
 .header h1 {
-    font-size: 3em; /* Larger, impactful title */
+    /* Responsive font size with clamp for smoother scaling */
+    font-size: clamp(2.2em, 5vw, 3em); 
     margin-bottom: 10px;
     font-weight: 800; /* Bolder font */
     letter-spacing: -0.03em; /* Tighter letter spacing */
@@ -57,7 +58,8 @@ body[dir="ar"] {
 
 .header p {
     opacity: 0.95;
-    font-size: 1.2em; /* Larger tagline */
+    /* Responsive font size with clamp */
+    font-size: clamp(1em, 2.5vw, 1.2em); 
     font-weight: 500;
 }
 
@@ -82,10 +84,10 @@ body[dir="ar"] {
 
 /* Language selector styling - more integrated */
 .language-selector-container {
-    position: absolute; /* Kept absolute for precise corner placement */
+    position: absolute; 
     top: 20px;
     right: 20px;
-    z-index: 2;
+    z-index: 2; /* Ensure it's above the background pattern */
 }
 /* Adjust position for RTL */
 body[dir="ar"] .language-selector-container {
@@ -137,7 +139,8 @@ body[dir="ar"] #languageSelector {
 
 .form-section-title {
     color: #374151;
-    font-size: 1.5em; /* Larger section titles */
+    /* Responsive font size with clamp */
+    font-size: clamp(1.2em, 3vw, 1.5em); 
     font-weight: 700;
     margin-bottom: 25px;
     display: flex;
@@ -147,6 +150,7 @@ body[dir="ar"] #languageSelector {
 /* Reverse order of icon and text for RTL (e.g., for 👤 and 🎯) */
 body[dir="ar"] .form-section-title {
     flex-direction: row-reverse;
+    justify-content: flex-end; /* Align title to the right */
 }
 
 .form-grid {
@@ -197,6 +201,7 @@ body[dir="ar"] input::placeholder,
 body[dir="ar"] textarea::placeholder {
     text-align: right;
 }
+
 
 textarea {
     min-height: 120px; /* Default min-height for textarea on desktop */
@@ -286,7 +291,8 @@ body[dir="ar"] .output-header {
 
 .output-header h3 {
     color: #374151;
-    font-size: 1.5em;
+    /* Responsive font size with clamp */
+    font-size: clamp(1.2em, 3vw, 1.5em); 
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -390,7 +396,8 @@ body[dir="ar"] .api-setup {
 .api-setup h3 {
     color: #065f46; /* Darker green for title */
     margin-bottom: 5px;
-    font-size: 1.2em;
+    /* Responsive font size with clamp */
+    font-size: clamp(1em, 2.5vw, 1.2em); 
     display: flex;
     align-items: center;
     gap: 10px;
@@ -441,12 +448,6 @@ body[dir="ar"] .api-setup h3 {
     .header {
         padding: 30px;
     }
-    .header h1 {
-        font-size: 2.5em;
-    }
-    .header p {
-        font-size: 1em;
-    }
     .language-selector-container {
         top: 15px;
         right: 15px;
@@ -472,7 +473,6 @@ body[dir="ar"] .api-setup h3 {
         padding: 30px;
     }
     .form-section-title {
-        font-size: 1.3em;
         margin-bottom: 20px;
     }
     label {
@@ -503,9 +503,6 @@ body[dir="ar"] .api-setup h3 {
         align-items: flex-end; /* Align all items to the right */
     }
 
-    .output-header h3 {
-        font-size: 1.3em;
-    }
     .copy-btn {
         width: 100%; /* Makes copy button full width */
         text-align: center;
@@ -532,12 +529,6 @@ body[dir="ar"] .api-setup h3 {
     .header {
         padding: 25px;
     }
-    .header h1 {
-        font-size: 2em; /* Smaller for very small screens */
-    }
-    .header p {
-        font-size: 0.9em;
-    }
     .language-selector-container {
         top: 10px;
         right: 10px;
@@ -559,12 +550,10 @@ body[dir="ar"] .api-setup h3 {
         padding-right: 0.5rem;
     }
 
-
     .form-container {
         padding: 20px;
     }
     .form-section-title {
-        font-size: 1.15em; /* Slightly smaller for very small screens */
         margin-bottom: 18px;
     }
     label {
@@ -588,9 +577,6 @@ body[dir="ar"] .api-setup h3 {
     .output-header {
         margin-bottom: 12px;
     }
-    .output-header h3 {
-        font-size: 1.2em;
-    }
     .copy-btn {
         padding: 8px 15px;
         font-size: 13px;
@@ -607,4 +593,4 @@ body[dir="ar"] .api-setup h3 {
         margin-bottom: 25px;
         border-radius: 12px;
     }
-  }
+    }
