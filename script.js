@@ -20,11 +20,11 @@ const API_KEY = 'AIzaSyAMIen9b701UekKNPVEuICV42kFZmhoUs4';
 const translations = {
     en: {
         documentTitle: "IgniteInbox: Your AI-Powered Outreach Engine",
-        headerTitle: "✨ IgniteInbox",
+        headerTitle: "IgniteInbox", // Emoji added in HTML
         headerTagline: "Your AI-Powered Outreach Engine",
-        apiConfigTitle: "🔑 API Configuration",
+        apiConfigTitle: "API Configuration", // Emoji added in HTML
         apiConfigText: "Your Gemini API is configured and ready to generate emails!",
-        yourSenderDetailsTitle: "👤 Your Sender Details",
+        yourSenderDetailsTitle: "Your Sender Details", // Emoji added in HTML
         yourNameLabel: "Your Name",
         yourNamePlaceholder: "e.g., Alex Johnson",
         yourEmailLabel: "Your Email",
@@ -33,7 +33,7 @@ const translations = {
         yourPhonePlaceholder: "e.g., +1 (555) 123-4567",
         yourCompanyLabel: "Your Company/Title (Optional)",
         yourCompanyPlaceholder: "e.g., CEO, Spark Solutions Inc.",
-        recipientDetailsTitle: "🎯 Recipient & Pitch Details",
+        recipientDetailsTitle: "Recipient & Pitch Details", // Emoji added in HTML
         recipientNameLabel: "Recipient's Name",
         recipientNamePlaceholder: "e.g., Sarah Davies",
         companyNameLabel: "Company Name",
@@ -49,9 +49,9 @@ const translations = {
         tonePersuasive: "Highly Persuasive",
         productServiceLabel: "Product/Service to Pitch",
         productServicePlaceholder: "Clearly describe your product or service and its key benefit for the recipient. Be specific! e.g., 'Our AI-powered CRM helps sales teams automate lead nurturing and close deals 30% faster.'",
-        generateButton: "Generate Email", // Text only, emoji handled by HTML directly
-        generatedEmailTitle: "📬 Your Generated Email",
-        copyButton: "Copy to Clipboard", // Text only, emoji handled by HTML directly
+        generateButton: "Generate Email", 
+        generatedEmailTitle: "Your Generated Email", // Emoji added in HTML
+        copyButton: "Copy to Clipboard", 
         outputBoxInitialText: "Your perfectly crafted, AI-generated cold email will appear here, ready to send!",
         // JS Alert/Dynamic messages
         alertFillRequired: "Please fill in all *required* fields.",
@@ -71,11 +71,11 @@ const translations = {
     },
     fr: {
         documentTitle: "IgniteInbox: Votre Moteur d'Outreach IA",
-        headerTitle: "✨ IgniteInbox",
+        headerTitle: "IgniteInbox",
         headerTagline: "Votre Moteur d'Outreach IA",
-        apiConfigTitle: "🔑 Configuration API",
+        apiConfigTitle: "Configuration API",
         apiConfigText: "Votre API Gemini est configurée et prête à générer des e-mails !",
-        yourSenderDetailsTitle: "👤 Vos Coordonnées d'Expéditeur",
+        yourSenderDetailsTitle: "Vos Coordonnées d'Expéditeur",
         yourNameLabel: "Votre Nom",
         yourNamePlaceholder: "ex: Alex Johnson",
         yourEmailLabel: "Votre E-mail",
@@ -84,7 +84,7 @@ const translations = {
         yourPhonePlaceholder: "ex: +33 6 12 34 56 78",
         yourCompanyLabel: "Votre Entreprise/Titre (Facultatif)",
         yourCompanyPlaceholder: "ex: PDG, Spark Solutions Inc.",
-        recipientDetailsTitle: "🎯 Détails du Destinataire et du Pitch",
+        recipientDetailsTitle: "Détails du Destinataire et du Pitch",
         recipientNameLabel: "Nom du Destinataire",
         recipientNamePlaceholder: "ex: Sarah Davies",
         companyNameLabel: "Nom de l'Entreprise",
@@ -101,7 +101,7 @@ const translations = {
         productServiceLabel: "Produit/Service à Proposer",
         productServicePlaceholder: "Décrivez clairement votre produit ou service et son avantage clé pour le destinataire. Soyez précis ! ex: 'Notre CRM alimenté par l'IA aide les équipes de vente à automatiser le nurturing des leads et à conclure des affaires 30% plus rapidement.'",
         generateButton: "Générer l'E-mail",
-        generatedEmailTitle: "📬 Votre E-mail Généré",
+        generatedEmailTitle: "Votre E-mail Généré",
         copyButton: "Copier dans le Presse-papiers",
         outputBoxInitialText: "Votre e-mail froid, parfaitement rédigé par l'IA, apparaîtra ici, prêt à être envoyé !",
         // JS Alert/Dynamic messages
@@ -122,11 +122,11 @@ const translations = {
     },
     ar: {
         documentTitle: "إجنايت إنبوكس: محرك التواصل الخاص بك بالذكاء الاصطناعي",
-        headerTitle: "IgniteInbox ✨",
+        headerTitle: "إجنايت إنبوكس",
         headerTagline: "محرك التواصل الخاص بك بالذكاء الاصطناعي",
-        apiConfigTitle: "🔑 إعدادات واجهة برمجة التطبيقات",
+        apiConfigTitle: "إعدادات واجهة برمجة التطبيقات",
         apiConfigText: "واجهة برمجة تطبيقات Gemini جاهزة لإنشاء رسائل البريد الإلكتروني!",
-        yourSenderDetailsTitle: "👤 تفاصيل المرسل الخاصة بك",
+        yourSenderDetailsTitle: "تفاصيل المرسل الخاصة بك",
         yourNameLabel: "اسمك",
         yourNamePlaceholder: "مثال: أليكس جونسون",
         yourEmailLabel: "بريدك الإلكتروني",
@@ -135,7 +135,7 @@ const translations = {
         yourPhonePlaceholder: "مثال: 009665xxxxxxxx",
         yourCompanyLabel: "شركتك/منصبك (اختياري)",
         yourCompanyPlaceholder: "مثال: الرئيس التنفيذي، سبارك سوليوشنز",
-        recipientDetailsTitle: "🎯 تفاصيل المستلم وعرض الموضوع",
+        recipientDetailsTitle: "تفاصيل المستلم وعرض الموضوع",
         recipientNameLabel: "اسم المستلم",
         recipientNamePlaceholder: "مثال: سارة ديفيز",
         companyNameLabel: "اسم الشركة",
@@ -152,7 +152,7 @@ const translations = {
         productServiceLabel: "المنتج/الخدمة المراد عرضها",
         productServicePlaceholder: "صف بوضوح منتجك أو خدمتك وفائدتها الرئيسية للمستلم. كن محددًا! مثال: 'يساعد نظام إدارة علاقات العملاء المدعوم بالذكاء الاصطناعي فرق المبيعات على أتمتة رعاية العملاء وإبرام الصفقات بشكل أسرع بنسبة 30٪.'",
         generateButton: "إنشاء بريد إلكتروني",
-        generatedEmailTitle: "📬 بريدك الإلكتروني الذي تم إنشاؤه",
+        generatedEmailTitle: "بريدك الإلكتروني الذي تم إنشاؤه",
         copyButton: "نسخ إلى الحافظة",
         outputBoxInitialText: "سيظهر بريدك الإلكتروني البارد المصمم بشكل مثالي بواسطة الذكاء الاصطناعي هنا، جاهزًا للإرسال!",
         // JS Alert/Dynamic messages
@@ -197,10 +197,8 @@ function applyTranslations(lang) {
         return;
     }
 
-    // Update document title
+    // Update document title and body direction
     document.title = currentTranslations.documentTitle;
-
-    // Set direction attribute on body for RTL languages (Arabic)
     document.body.dir = (lang === 'ar') ? 'rtl' : 'ltr';
 
     // Update all elements with data-key attributes
@@ -214,16 +212,14 @@ function applyTranslations(lang) {
                 // For select options, update text content
                 element.textContent = currentTranslations[key];
             } else if (element.tagName === 'BUTTON') {
-                // For buttons, update text content while preserving potential icons
-                // The icon is now explicitly in HTML, so we just update the text content.
-                // We'll manually manage the icon for dynamic changes like loading.
+                // For buttons, set innerHTML including icon.
+                // The icon (🚀 or 📋) is now managed by the JS for dynamic changes.
                 if (key === 'generateButton') {
-                    // Always ensure the rocket emoji is present
                     element.innerHTML = `🚀 ${currentTranslations[key]}`;
                 } else if (key === 'copyButton') {
-                    // Always ensure the clipboard emoji is present
                     element.innerHTML = `📋 ${currentTranslations[key]}`;
                 } else {
+                    // For any other buttons with data-key that might appear
                     element.textContent = currentTranslations[key];
                 }
             } else {
@@ -232,6 +228,20 @@ function applyTranslations(lang) {
             }
         }
     });
+
+    // Manually ensure header emojis are present as they are static in HTML
+    document.querySelector('[data-key="headerTitle"]').innerHTML = `✨ ${currentTranslations.headerTitle}`;
+    document.querySelector('[data-key="apiConfigTitle"]').innerHTML = `🔑 ${currentTranslations.apiConfigTitle}`;
+    document.querySelector('[data-key="yourSenderDetailsTitle"]').innerHTML = `👤 ${currentTranslations.yourSenderDetailsTitle}`;
+    document.querySelector('[data-key="recipientDetailsTitle"]').innerHTML = `🎯 ${currentTranslations.recipientDetailsTitle}`;
+    document.querySelector('[data-key="generatedEmailTitle"]').innerHTML = `📬 ${currentTranslations.generatedEmailTitle}`;
+
+    // Update output box initial text based on current language
+    if (outputBox.textContent === translations.en.outputBoxInitialText ||
+        outputBox.textContent === translations.fr.outputBoxInitialText ||
+        outputBox.textContent === translations.ar.outputBoxInitialText) {
+        outputBox.textContent = currentTranslations.outputBoxInitialText;
+    }
 }
 
 // --- Event Listeners ---
@@ -381,25 +391,4 @@ copyBtn.addEventListener('click', async () => {
         await navigator.clipboard.writeText(outputBox.textContent);
         copyBtn.innerHTML = `✅ ${langMsgs.copyButtonCopied}`; // Translated "Copied!" with emoji
         setTimeout(() => {
-            copyBtn.innerHTML = `📋 ${langMsgs.copyButton}`; // Reset to translated text with emoji
-        }, 2000);
-    } catch (err) {
-        console.error('Failed to copy: ', err);
-        // Fallback for older browsers or if navigator.clipboard is not available
-        const textArea = document.createElement('textarea');
-        textArea.value = outputBox.textContent;
-        textArea.style.position = 'fixed'; 
-        textArea.style.top = '0';
-        textArea.style.left = '0';
-        textArea.style.width = '2em';
-        textArea.style.height = '2em';
-        textArea.style.padding = '0';
-        textArea.style.border = 'none';
-        textArea.style.outline = 'none';
-        textArea.style.boxShadow = 'none';
-        textArea.style.background = 'transparent';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-
-        t
+            copyBtn.innerHTML = `📋 ${langMsgs.copyButton}`; // Reset t
