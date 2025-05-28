@@ -1,0 +1,596 @@
+/* style.css */
+/* Base styles & reset (Desktop-first approach) */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #3a006c 0%, #6f0088 100%); /* Deeper, richer gradient */
+    min-height: 100vh;
+    padding: 30px 20px; /* Base padding for larger screens */
+    display: flex;
+    align-items: center; /* Center container vertically on desktop */
+    justify-content: center;
+    transition: font-family 0.3s ease-in-out; /* Smooth transition for font change */
+}
+
+/* Specific font for Arabic text to ensure proper rendering and readability */
+body[dir="ar"] {
+    font-family: 'Cairo', 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 850px; /* Maximum width for desktop */
+    width: 100%; /* Ensures it's fluid on smaller screens */
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.98); /* Less transparent for solidity */
+    backdrop-filter: blur(15px); /* Stronger blur */
+    border-radius: 25px; /* Larger border-radius */
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2); /* Deeper shadow */
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+}
+
+.header {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed); /* Vibrant header gradient */
+    color: white;
+    padding: 40px; /* Increased padding */
+    text-align: center;
+    position: relative; /* For the language selector */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.header h1 {
+    /* Responsive font size with clamp for smoother scaling */
+    font-size: clamp(2.2em, 5vw, 3em); 
+    margin-bottom: 10px;
+    font-weight: 800; /* Bolder font */
+    letter-spacing: -0.03em; /* Tighter letter spacing */
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle text shadow */
+}
+
+.header p {
+    opacity: 0.95;
+    /* Responsive font size with clamp */
+    font-size: clamp(1em, 2.5vw, 1.2em); 
+    font-weight: 500;
+}
+
+/* Subtle background pattern for header */
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 0L61.8 38.2L100 38.2L69.1 61.8L80.9 100L50 76.4L19.1 100L30.9 61.8L0 38.2L38.2 38.2L50 0Z" fill="rgba(255,255,255,0.05)"/></svg>') repeat;
+    opacity: 0.4;
+    transform: rotate(15deg);
+    pointer-events: none;
+    z-index: 0;
+}
+.header h1, .header p {
+    position: relative;
+    z-index: 1;
+}
+
+/* Language selector styling - more integrated */
+.language-selector-container {
+    position: absolute; 
+    top: 20px;
+    right: 20px;
+    z-index: 2; /* Ensure it's above the background pattern */
+}
+/* Adjust position for RTL */
+body[dir="ar"] .language-selector-container {
+    left: 20px;
+    right: auto;
+}
+
+#languageSelector {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Slightly stronger border */
+    background: rgba(255, 255, 255, 0.25); /* Slightly less transparent background */
+    color: white;
+    font-size: 0.9em;
+    cursor: pointer;
+    backdrop-filter: blur(8px); /* Stronger blur for glassmorphism effect */
+    -webkit-appearance: none; /* Remove default arrow */
+    -moz-appearance: none;
+    appearance: none;
+    /* Custom arrow for select, color matches text */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22white%22%20d%3D%22M287%2C197.9L146.2%2C57.1L5.4%2C197.9h281.6z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.6em;
+    padding-right: 2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+#languageSelector:hover {
+    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+/* Adjust arrow position for RTL */
+body[dir="ar"] #languageSelector {
+    background-position: left 0.75rem center;
+    padding-left: 2rem;
+    padding-right: 0.75rem; /* Revert default padding-right */
+}
+
+#languageSelector option {
+    background: #4f46e5; /* Background for options in dropdown */
+    color: white;
+}
+
+
+.form-container {
+    padding: 50px; /* More generous padding */
+}
+
+.form-section-title {
+    color: #374151;
+    /* Responsive font size with clamp */
+    font-size: clamp(1.2em, 3vw, 1.5em); 
+    font-weight: 700;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+/* Reverse order of icon and text for RTL (e.g., for 👤 and 🎯) */
+body[dir="ar"] .form-section-title {
+    flex-direction: row-reverse;
+    justify-content: flex-end; /* Align title to the right */
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns on desktop */
+    gap: 30px; /* Increased gap */
+    margin-bottom: 35px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-weight: 600;
+    margin-bottom: 10px; /* Increased margin */
+    color: #4B5563; /* Slightly darker label color */
+    font-size: 0.9em; /* Slightly smaller for inputs, but bold */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+/* Align labels to the right for RTL */
+body[dir="ar"] label {
+    text-align: right;
+}
+
+input, select, textarea {
+    padding: 14px 18px; /* Larger padding */
+    border: 2px solid #e0e7ee; /* Lighter, more subtle border */
+    border-radius: 14px; /* Larger border-radius */
+    font-size: 17px; /* Slightly larger font size */
+    transition: all 0.3s ease;
+    background: white;
+    color: #374151;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); /* Subtle inset shadow */
+}
+/* Align input text to the right for RTL */
+body[dir="ar"] input, body[dir="ar"] textarea {
+    text-align: right;
+}
+/* Placeholder text alignment for RTL */
+body[dir="ar"] input::placeholder,
+body[dir="ar"] textarea::placeholder {
+    text-align: right;
+}
+
+
+textarea {
+    min-height: 120px; /* Default min-height for textarea on desktop */
+    resize: vertical; /* Allow vertical resizing */
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #6d28d9; /* More vibrant focus color */
+    box-shadow: 0 0 0 4px rgba(109, 40, 217, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.08); /* More pronounced focus shadow */
+}
+
+input:hover, select:hover, textarea:hover {
+    border-color: #c9d2de; /* Subtle hover border */
+}
+
+select {
+    cursor: pointer;
+    -webkit-appearance: none; /* Remove default arrow */
+    -moz-appearance: none;
+    appearance: none;
+    /* Custom arrow for select, adjusted for standard text direction */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22%236d28d9%22%20d%3D%22M287%2C197.9L146.2%2C57.1L5.4%2C197.9h281.6z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 0.8em;
+    padding-right: 2.5rem; /* Space for the arrow */
+}
+/* Adjust select arrow position and padding for RTL */
+body[dir="ar"] select {
+    background-position: left 1rem center;
+    padding-left: 2.5rem;
+    padding-right: 1.5rem; /* Ensure text doesn't go under the arrow */
+    text-align: right;
+    text-align-last: right; /* For Firefox */
+}
+
+
+.generate-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #6d28d9, #9333ea); /* Stronger purple gradient */
+    color: white;
+    border: none;
+    padding: 18px 32px; /* More padding */
+    border-radius: 14px; /* Consistent border-radius */
+    font-size: 20px; /* Larger font size */
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 40px; /* More margin */
+    box-shadow: 0 10px 20px rgba(109, 40, 217, 0.2); /* Initial shadow */
+}
+
+.generate-btn:hover {
+    transform: translateY(-3px); /* More pronounced lift */
+    box-shadow: 0 15px 30px rgba(109, 40, 217, 0.4); /* Deeper shadow on hover */
+}
+
+.generate-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 5px 15px rgba(109, 40, 217, 0.2);
+}
+
+.generate-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+.output-section {
+    margin-top: 40px; /* More space */
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* More margin */
+}
+/* Swap order of title and button for RTL */
+body[dir="ar"] .output-header {
+    flex-direction: row-reverse;
+}
+
+
+.output-header h3 {
+    color: #374151;
+    /* Responsive font size with clamp */
+    font-size: clamp(1.2em, 3vw, 1.5em); 
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+/* Reverse order of icon and text for RTL (e.g., for 📬) */
+body[dir="ar"] .output-header h3 {
+    flex-direction: row-reverse;
+}
+
+
+.copy-btn {
+    background: #10b981; /* Green for success */
+    color: white;
+    border: none;
+    padding: 10px 20px; /* More padding */
+    border-radius: 10px; /* Larger radius */
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+.copy-btn:hover {
+    background: #059669; /* Darker green */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+.copy-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.copy-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+.output-box {
+    background: #fdfdfe; /* Almost white */
+    border: 2px solid #e0e7ee; /* Consistent border style */
+    border-radius: 14px; /* Consistent radius */
+    padding: 25px; /* More padding */
+    min-height: 250px; /* Taller output box */
+    font-family: 'Georgia', serif; /* Classic look for email content */
+    line-height: 1.7; /* Increased line height for readability */
+    white-space: pre-wrap;
+    color: #374151;
+    overflow-y: auto; /* Scroll for long emails */
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); /* Inner shadow for depth */
+}
+/* Align output text to the right for RTL */
+body[dir="ar"] .output-box {
+    text-align: right;
+}
+
+
+.loading {
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+    padding: 50px;
+}
+/* Align loading text to the right for RTL */
+body[dir="ar"] .loading {
+    text-align: right; /* Adjust for RTL */
+}
+
+.error {
+    background: #fee2e2; /* Light red */
+    border-color: #fca5a5; /* Red border */
+    color: #dc2626; /* Darker red text */
+    padding: 25px; /* Ensure padding is applied */
+}
+/* Align error text to the right for RTL */
+body[dir="ar"] .error {
+    text-align: right;
+}
+
+
+.api-setup {
+    background: #ecfdf5; /* Light green for success/ready */
+    border: 2px solid #34d399; /* Green border */
+    border-radius: 14px;
+    padding: 25px; /* More padding */
+    margin-bottom: 40px; /* More margin */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+/* Align API setup text to the right for RTL */
+body[dir="ar"] .api-setup {
+    text-align: right;
+}
+
+.api-setup h3 {
+    color: #065f46; /* Darker green for title */
+    margin-bottom: 5px;
+    /* Responsive font size with clamp */
+    font-size: clamp(1em, 2.5vw, 1.2em); 
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* Reverse order of icon and text for RTL (e.g., for 🔑) */
+body[dir="ar"] .api-setup h3 {
+    flex-direction: row-reverse;
+}
+
+
+.api-setup p {
+    color: #065f46;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+.api-setup strong {
+    color: #c00000; /* Red for the important note */
+    font-weight: 700;
+}
+
+/* "Your Info" section */
+.your-info-section {
+    margin-bottom: 40px;
+    padding: 30px; /* Increased padding */
+    background: #eef2ff; /* Very light blue/purple for distinction */
+    border-radius: 18px; /* Larger radius */
+    border: 1px solid #d4e0ff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+}
+
+
+/* --- RESPONSIVE STYLES --- */
+
+/* Tablets and larger mobile devices */
+@media (max-width: 768px) {
+    body {
+        padding: 20px 15px;
+        align-items: flex-start; /* Aligns content to top on mobile for scrolling */
+    }
+    .container {
+        border-radius: 18px;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+    .form-grid {
+        grid-template-columns: 1fr; /* Stacks inputs vertically */
+        gap: 20px;
+    }
+    .header {
+        padding: 30px;
+    }
+    .language-selector-container {
+        top: 15px;
+        right: 15px;
+    }
+    body[dir="ar"] .language-selector-container {
+        left: 15px;
+        right: auto;
+    }
+    #languageSelector {
+        padding: 6px 10px;
+        font-size: 0.85em;
+        border-radius: 6px;
+        background-position: right 0.6rem center;
+        padding-right: 1.8rem;
+    }
+    body[dir="ar"] #languageSelector {
+        background-position: left 0.6rem center;
+        padding-left: 1.8rem;
+        padding-right: 0.6rem;
+    }
+
+    .form-container {
+        padding: 30px;
+    }
+    .form-section-title {
+        margin-bottom: 20px;
+    }
+    label {
+        margin-bottom: 8px; /* Reduced margin for labels */
+    }
+    input, select, textarea {
+        padding: 12px 15px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+    textarea {
+        min-height: 100px; /* Slightly less height on tablet/larger mobile */
+    }
+    .generate-btn {
+        padding: 14px 25px;
+        font-size: 18px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+    .output-header {
+        flex-direction: column; /* Stacks header and copy button */
+        align-items: flex-start;
+        gap: 15px;
+    }
+    /* For RTL, on mobile, we align to the end (right) but keep elements stacked */
+    body[dir="ar"] .output-header {
+        flex-direction: column; /* Keep stacked */
+        align-items: flex-end; /* Align all items to the right */
+    }
+
+    .copy-btn {
+        width: 100%; /* Makes copy button full width */
+        text-align: center;
+        padding: 10px;
+        font-size: 14px;
+    }
+    .output-box {
+        padding: 20px;
+        min-height: 180px;
+        border-radius: 12px;
+    }
+    .api-setup, .your-info-section {
+        padding: 20px;
+        margin-bottom: 30px;
+        border-radius: 14px;
+    }
+}
+
+/* Smaller mobile devices (e.g., iPhone SE, older Androids) */
+@media (max-width: 480px) {
+    body {
+        padding: 15px 10px; /* Even less padding for very small screens */
+    }
+    .header {
+        padding: 25px;
+    }
+    .language-selector-container {
+        top: 10px;
+        right: 10px;
+    }
+    body[dir="ar"] .language-selector-container {
+        left: 10px;
+        right: auto;
+    }
+    #languageSelector {
+        padding: 5px 8px;
+        font-size: 0.8em;
+        border-radius: 5px;
+        background-position: right 0.5rem center;
+        padding-right: 1.5rem;
+    }
+    body[dir="ar"] #languageSelector {
+        background-position: left 0.5rem center;
+        padding-left: 1.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .form-container {
+        padding: 20px;
+    }
+    .form-section-title {
+        margin-bottom: 18px;
+    }
+    label {
+        font-size: 0.85em; /* Slightly smaller labels */
+        margin-bottom: 6px;
+    }
+    input, select, textarea {
+        padding: 10px 12px;
+        font-size: 15px;
+        border-radius: 10px;
+    }
+    textarea {
+        min-height: 90px; /* Minimum height for textarea on small mobiles */
+    }
+    .generate-btn {
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+    .output-header {
+        margin-bottom: 12px;
+    }
+    .copy-btn {
+        padding: 8px 15px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+    .output-box {
+        padding: 15px;
+        min-height: 150px; /* Reduced min-height for small screens */
+        border-radius: 10px;
+        font-size: 0.9em;
+    }
+    .api-setup, .your-info-section {
+        padding: 18px;
+        margin-bottom: 25px;
+        border-radius: 12px;
+    }
+    }
