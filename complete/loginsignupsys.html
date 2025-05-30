@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IgniteInbox - Login & Signup</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    
+    <!-- Link to your external CSS file -->
+    <link rel="stylesheet" href="styl1e.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card form-slide-in">
+            <!-- Brand Header -->
+            <div class="flame-logo"></div>
+            <h1 class="brand-title">IgniteInbox</h1>
+            <p class="brand-subtitle">AI-Powered Cold Email Generator</p>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <h2 class="auth-title">Welcome back</h2>
+                <p class="auth-subtitle">Sign in to your account to continue</p>
+
+                <form id="loginUserForm">
+                    <div class="form-group">
+                        <label class="form-label" for="loginEmail">Email address</label>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
+                        <div class="error-message" id="loginEmailError">Please enter a valid email address</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword(this)">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                        <div class="error-message" id="loginPasswordError">Password must be at least 8 characters</div>
+                        <div class="forgot-password">
+                            <a href="#" onclick="showForgotPassword(event)">Forgot password?</a>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-wrapper">
+                        <div class="custom-checkbox" id="rememberMeCheckbox" onclick="toggleCheckbox(this)"></div>
+                        <label class="checkbox-label" for="rememberMeCheckbox" onclick="toggleCheckbox(this.previousElementSibling)">
+                            Remember me for 30 days
+                        </label>
+                    </div>
+
+                    <button type="submit" class="auth-button" id="loginButton">
+                        Sign in
+                    </button>
+                </form>
+
+                <!-- Removed "Or continue with" divider and Google button -->
+                
+                <div class="auth-switch">
+                    Don't have an account? <a href="#" onclick="showSignup(event)">Sign up</a>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signupForm" class="hidden">
+                <h2 class="auth-title">Create account</h2>
+                <p class="auth-subtitle">Get started with your free 3-day trial</p>
+
+                <form id="signupUserForm">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label" for="signupFirstName">First name</label>
+                                <input type="text" id="signupFirstName" class="form-control" placeholder="John" required>
+                                <div class="error-message" id="signupFirstNameError">Please enter your first name</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label" for="signupLastName">Last name</label>
+                                <input type="text" id="signupLastName" class="form-control" placeholder="Doe" required>
+                                <div class="error-message" id="signupLastNameError">Please enter your last name</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signupEmail">Email address</label>
+                        <input type="email" id="signupEmail" class="form-control" placeholder="john@company.com" required>
+                        <div class="error-message" id="signupEmailError">Please enter a valid email address</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signupPassword">Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="signupPassword" class="form-control" placeholder="Create a strong password" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword(this)">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                        <div class="error-message" id="signupPasswordError">Password must be at least 8 characters</div>
+                    </div>
+
+                    <div class="checkbox-wrapper">
+                        <div class="custom-checkbox" id="termsCheckbox" onclick="toggleCheckbox(this)"></div>
+                        <label class="checkbox-label" for="termsCheckbox" onclick="toggleCheckbox(this.previousElementSibling)">
+                            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                        </label>
+                        <div class="error-message" id="termsError">Please accept the terms and conditions</div>
+                    </div>
+
+                    <button type="submit" class="auth-button" id="signupButton">
+                        Start free trial
+                    </button>
+                </form>
+
+                <!-- Removed "Or continue with" divider and Google button -->
+
+                <div class="auth-switch">
+                    Already have an account? <a href="#" onclick="showLogin(event)">Sign in</a>
+                </div>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div id="forgotForm" class="hidden">
+                <h2 class="auth-title">Reset password</h2>
+                <p class="auth-subtitle">Enter your email and we'll send you a reset link</p>
+
+                <form id="forgotPasswordForm">
+                    <div class="form-group">
+                        <label class="form-label" for="forgotEmail">Email address</label>
+                        <input type="email" id="forgotEmail" class="form-control" placeholder="Enter your email" required>
+                        <div class="error-message" id="forgotEmailError">Please enter a valid email address</div>
+                    </div>
+
+                    <button type="submit" class="auth-button" id="forgotPasswordButton">
+                        Send reset link
+                    </button>
+                </form>
+
+                <div class="auth-switch">
+                    Remember your password? <a href="#" onclick="showLogin(event)">Sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <!-- Your custom auth logic - linked as a module -->
+    <script type="module" src="auth.js"></script>
+</body>
+</html>
