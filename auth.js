@@ -25,7 +25,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app); // Get the Auth service instance
 
 // --- Constants ---
-const REDIRECTION_URL = 'index.html'; // Your target website
+const REDIRECTION_URL = '/index.html'; // Your target website
 
 // --- Utility Functions ---
 // Initialize Lucide icons (must be called after DOM is loaded)
