@@ -1476,6 +1476,22 @@ function gapiLoaded() {
     gapi.load('client', initializeGapiClient);
 }
 
+ // Add this new function
+async function initializeGapiClient() {
+    try {
+        await gapi.client.init({
+            apiKey: GMAIL_API_KEY,
+            discoveryDocs: [GMAIL_DISCOVERY_DOC],
+        });
+        gapiInited = true;
+        console.log("GAPI client initialized.");
+        checkGmailAuthReady();
+    } catch (error) {
+        console.error("Error initializing GAPI client:", error);
+        showMessage('Gmail API setup failed.', 'error');
+    }
+}
+
 
 function gisLoaded() {
     try {
