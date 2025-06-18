@@ -1,0 +1,1789 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IgniteInbox - AI Email Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+    /* --- REMOVED PROBLEMATIC STYLES --- */
+    #senderFirstName,
+    #senderPhone,
+    #senderEmail {
+        position: static; /* Let grid control layout */
+        width: 100%;
+        left: auto;
+    }
+
+    .sender-info-section {
+        background: rgba(255, 165, 0, 0.05);
+        border: 1px solid rgba(255, 165, 0, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .sender-info-section h3 {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sender-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    #senderBio {
+        margin-bottom: 0.5rem;
+    }
+
+    .sender-info-section small {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.875rem;
+    }
+
+    /* --- NEW: TOP RIGHT CONTROLS --- */
+    .header-top-right {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        z-index: 1002;
+    }
+
+    /* --- ADJUSTED GMAIL SECTION FOR TOP RIGHT --- */
+    .gmail-connection-section {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .gmail-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .gmail-status-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .gmail-status-icon.connected {
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        animation: connected-pulse 2s ease-in-out infinite alternate;
+    }
+
+    .gmail-status-icon.disconnected {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes connected-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); }
+        100% { box-shadow: 0 0 20px 10px rgba(66, 133, 244, 0.1); }
+    }
+
+    .gmail-status-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .gmail-status-title {
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .gmail-status-subtitle {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        display: none; /* Hidden by default to save space */
+    }
+
+    .gmail-connect-btn {
+        padding: 0.6rem 1rem;
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .gmail-connect-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(66, 133, 244, 0.3);
+    }
+
+    .gmail-connect-btn:active {
+        transform: translateY(0);
+    }
+
+    .gmail-connect-btn.connected {
+        background: linear-gradient(135deg, #34a853, #4285f4);
+    }
+
+    .gmail-connect-btn.disconnect {
+        background: linear-gradient(135deg, #ea4335, #fbbc05);
+    }
+
+    .gmail-connect-btn .btn-shine {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transform: rotate(45deg);
+        animation: btn-shine 3s ease-in-out infinite;
+    }
+
+    @keyframes btn-shine {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    }
+
+    /* Updated send button for direct send */
+    .btn-send-direct {
+        background: linear-gradient(135deg, #34a853, #4285f4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-send-direct:hover {
+        box-shadow: 0 10px 20px rgba(52, 168, 83, 0.3);
+    }
+
+    .btn-send-direct:disabled {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .send-direct-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* --- ADJUSTED USER PROFILE FOR NEW LAYOUT --- */
+    .user-profile-container {
+        position: relative;
+        /* Removed top, right positioning */
+        z-index: 1001;
+        color: white;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+
+    .user-info-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        padding: 0.6rem 1rem;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+        cursor: default;
+    }
+
+    #userNameDisplay {
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1;
+    }
+
+    .dropdown-toggle {
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 0.25rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .dropdown-toggle:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: scale(1.1);
+    }
+
+    .dropdown-toggle svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .dropdown-menu {
+        position: absolute; /* Changed from relative */
+        top: calc(100% + 10px);
+        right: 0;
+        background: rgba(30, 30, 55, 0.95);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        padding: 0.5rem;
+        min-width: 160px;
+        z-index: 1000;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: none;
+        transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+    }
+
+    .dropdown-menu:not(.hidden) {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .dropdown-menu.hidden {
+        display: none;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-10px);
+    }
+
+    .dropdown-item4 {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: transparent; /* Changed from red */
+        border: none;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+
+    .dropdown-item4:hover {
+        background-color: rgba(234, 67, 53, 0.25); /* Red accent on hover */
+        color: white;
+    }
+
+    .user-profile-container.hidden {
+        display: none !important;
+    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #2d1b69 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            color: white;
+        }
+
+        .particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            margin-top: 1rem; /* Add space for top-right controls */
+        }
+
+        .red-flame-logo {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            cursor: pointer;
+        }
+
+        .red-flame-logo-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 69, 0, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-main {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff4500 0%, #ff6347 30%, #ffa500 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 1.5s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-inner-orange-red {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 60px;
+            background: linear-gradient(45deg, #ff6347 0%, #ffa500 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 1.8s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-core-orange {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25px;
+            height: 40px;
+            background: linear-gradient(45deg, #ffa500 0%, #ffff00 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 2.2s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-inner-yellow-orange {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 15px;
+            height: 25px;
+            background: linear-gradient(45deg, #ffff00 0%, #ffffff 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 2.5s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-center-hotspot {
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ffffff;
+            animation: hotspot-pulse 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.6; }
+        }
+
+        @keyframes flicker {
+            0% { transform: translate(-50%, -50%) scale(1) rotate(-2deg); }
+            100% { transform: translate(-50%, -50%) scale(1.05) rotate(2deg); }
+        }
+
+        @keyframes hotspot-pulse {
+            0% { box-shadow: 0 0 5px #ffffff; }
+            100% { box-shadow: 0 0 15px #ffffff, 0 0 25px #ffff00; }
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #ffa500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: rgba(255, 165, 0, 0.9);
+            margin-bottom: 0.75rem;
+        }
+
+        .description {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, #ff4500, #ffa500);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #ff4500, #ffa500);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .toggle-btn:hover:not(.active) {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .input-section {
+            display: none;
+        }
+
+        .input-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: rgba(255, 165, 0, 0.5);
+            box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-input[type="file"] {
+            cursor: pointer;
+        }
+
+        .form-input[type="file"]::-webkit-file-upload-button {
+            background: rgba(255, 165, 0, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .form-input[type="file"]::-webkit-file-upload-button:hover {
+            background: rgba(255, 165, 0, 0.3);
+        }
+
+        .manual-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .manual-form .form-input {
+            margin-bottom: 0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .generate-btn {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin: 2rem auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #ff4500 0%, #ffa500 100%);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 69, 0, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .generate-btn-shine {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            animation: shine 2s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        }
+
+        .email-preview-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .email-preview {
+            width: 100%;
+            min-height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-preview:focus {
+            outline: none;
+            border-color: rgba(255, 165, 0, 0.3);
+        }
+
+        .email-preview::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem; /* Added margin top */
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .navigation {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 165, 0, 0.2);
+            transform: scale(1.05);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .email-counter {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .dot-indicator {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background: #ffa500;
+            transform: scale(1.2);
+        }
+
+        .processing-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.5rem;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            gap: 1rem;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffa500;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message-box {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 300px;
+        }
+
+        .message-box.show {
+            transform: translateX(0);
+        }
+
+        .success-message {
+            background: rgba(76, 175, 80, 0.9);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.9);
+            border-left: 4px solid #f44336;
+        }
+
+        .utility.hidden {
+            display: none;
+        }
+
+        .space-y-3 > * + * {
+            margin-top: 0.75rem;
+        }
+
+        .space-y-5 > * + * {
+            margin-top: 1.25rem;
+        }
+
+        .recipient-info {
+            color: rgba(255, 165, 0, 0.9);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1rem;
+            padding: 0.5rem;
+            background: rgba(255, 165, 0, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #ffa500;
+        }
+
+        /* --- RESPONSIVE DESIGN ENHANCEMENTS --- */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            .header-top-right {
+                position: relative;
+                top: 0;
+                right: 0;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .gmail-connection-section {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            .gmail-status-subtitle {
+                display: block; /* Show subtitle again on stacked view */
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .sender-form, .manual-form {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                margin-bottom: 0.5rem;
+            }
+
+            .message-box {
+                top: 1rem;
+                right: 1rem;
+                left: 1rem;
+                width: auto;
+                transform: translateY(-200%);
+            }
+            .message-box.show {
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.mjs"></script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+<script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+</head>
+<body>
+    
+    <div class="particle-container" id="particleContainer"></div>
+
+    <div class="container">
+        <div class="header-top-right">
+            <div id="gmailConnectionSection" class="gmail-connection-section hidden">
+                <div class="gmail-status">
+                    <div class="gmail-status-icon disconnected" id="gmailStatusIcon">
+                        📧
+                    </div>
+                    <div class="gmail-status-text">
+                        <div class="gmail-status-title" id="gmailStatusTitle">Gmail Not Connected</div>
+                        <div class="gmail-status-subtitle" id="gmailStatusSubtitle">Connect to send directly</div>
+                    </div>
+                </div>
+                <button class="gmail-connect-btn" id="gmailConnectBtn" onclick="toggleGmailConnection()">
+                    <div class="btn-shine"></div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <span>Connect</span>
+                </button>
+            </div>
+            <div id="userProfileContainer" class="user-profile-container hidden">
+                <div class="user-info-display" id="userInfoDisplay">
+                    <span id="userNameDisplay"></span>
+                    <button id="userDropdownToggle" class="dropdown-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                </div>
+                <div id="userDropdownMenu" class="dropdown-menu hidden">
+                    <button id="logoutButton" class="dropdown-item4">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="header">
+            <div class="red-flame-logo">
+                <div class="red-flame-logo-glow"></div>
+                <div class="red-flame-logo-main"></div>
+                <div class="red-flame-logo-inner-orange-red"></div>
+                <div class="red-flame-logo-core-orange"></div>
+                <div class="red-flame-logo-inner-yellow-orange"></div>
+                <div class="red-flame-logo-center-hotspot"></div>
+            </div>
+            
+            <h1>IgniteInbox</h1>
+            
+            <div class="space-y-3">
+                <p class="tagline">Your AI-Powered Outreach Engine</p>
+                <p class="description">Transform your cold outreach with personalized, high-converting emails generated by advanced AI</p>
+            </div>
+        </div>
+
+        <div class="card" id="inputCard">
+            <div class="card-header">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">Setup Your Campaign</div>
+            </div>
+            
+            <div class="toggle-container">
+                <button class="toggle-btn active" id="csvToggle" onclick="toggleInputMode('csv')">
+                    Upload CSV File
+                </button>
+                <button class="toggle-btn" id="manualToggle" onclick="toggleInputMode('manual')">
+                    Enter Single Recipient
+                </button>
+            </div>
+            <div class="sender-info-section">
+                <h3><span>👤</span> Sender Information</h3>
+                <div class="sender-form">
+                    <input type="text" id="senderFirstName" placeholder="Your First Name *" class="form-input" required>
+                    <input type="text" id="senderLastName" placeholder="Your Last Name *" class="form-input" required>
+                    <input type="text" id="senderCompany" placeholder="Your Company *" class="form-input" required>
+                    <input type="text" id="senderRole" placeholder="Your Role/Title *" class="form-input" required>
+                    <input type="email" id="senderEmail" placeholder="Your Email Address *" class="form-input full-width" required>
+                    <input type="tel" id="senderPhone" placeholder="Your Phone (optional)" class="form-input full-width">
+                </div>
+                <textarea id="senderBio" rows="2" placeholder="Brief professional background (optional)" class="form-input"></textarea>
+                <small>* Required fields. This information will be used to personalize your outreach emails.</small>
+            </div>
+
+            <div class="input-section active" id="csvSection">
+                <div>
+                    <label for="csvFileInput" style="display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.8); font-weight: 600;">Upload Prospects CSV:</label>
+                    <input type="file" id="csvFileInput" accept=".csv" class="form-input">
+                           <small style="color: rgba(255,255,255,0.6); font-size: 0.875rem;">Required columns: 'FirstName', 'LastName', 'Company', 'Role'. 'Email' is optional for direct sending.</small>
+                </div>
+            </div>
+
+            <div class="input-section" id="manualSection">
+                <div class="manual-form">
+                    <input type="text" id="firstName" placeholder="First Name *" class="form-input" required>
+                    <input type="text" id="lastName" placeholder="Last Name *" class="form-input" required>
+                    <input type="text" id="company" placeholder="Company *" class="form-input" required>
+                    <input type="text" id="role" placeholder="Role/Position *" class="form-input" required>
+                    <input type="email" id="email" placeholder="Email Address (optional)" class="form-input full-width">
+                </div>
+                <small style="color: rgba(255,255,255,0.6); font-size: 0.875rem;">* Required fields. Email is optional for preview mode.</small>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <label for="emailPurpose" style="display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.8); font-weight: 600;">Email Purpose / Goal:</label>
+                <textarea id="emailPurpose" rows="4" placeholder="e.g., 'Introduce our AI-powered CRM that helps sales teams close deals faster and streamline customer communication.'" class="form-input"></textarea>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <label for="emailLanguage" style="display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.8); font-weight: 600;">Generation Language:</label>
+                <select id="emailLanguage" class="form-input">
+                    <option value="English" selected>English</option>
+                    <option value="Spanish">Español (Spanish)</option>
+                    <option value="French">Français (French)</option>
+                    <option value="German">Deutsch (German)</option>
+                    <option value="Portuguese">Português (Portuguese)</option>
+                    <option value="Italian">Italiano (Italian)</option>
+                    <option value="Dutch">Nederlands (Dutch)</option>
+                </select>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" >
+                <div class="generate-btn-shine"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.75-.75 1.39-1.68 1.61-2.85A10.87 10.87 0 0 0 7.5 7.5c-2.43 2.07-3.64 5.31-2.91 9z"/>
+                    <path d="M14 5c0-1.5 1-2 1-2s.5-1 2-1 2 1 2 1v2l-1 1h-2L14 5Z"/>
+                    <path d="M10 15V9l-4-4h4l1 1v4l-4 4h-4Z"/>
+                    <path d="M8 17L5 20"/>
+                    <path d="M13 18l-1 1"/>
+                    <path d="M16 13l1-1"/>
+                    <path d="M19 10l-1-1"/>
+                </svg>
+                <span>Generate Email</span>
+            </button>
+            
+            <div class="processing-section" id="processingStatus" style="display: none;">
+                <span id="processingText">Generating email...</span>
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="card hidden" id="emailSliderCard">
+            <div class="card-header">
+                <div class="card-icon">📧</div>
+                <div class="card-title">Email Preview & Edit</div>
+            </div>
+            
+            <textarea id="emailPreview" class="email-preview" placeholder="Your generated email will appear here..."></textarea>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="copyEmail()" id="copyBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Copy Email
+                </button>
+                <button class="btn btn-secondary btn-send-direct" onclick="sendEmail()" id="sendBtn" disabled>
+                    <div class="send-direct-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+                        </svg>
+                        <span>Send Direct</span>
+                    </div>
+                </button>
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prevBtn" onclick="prevEmail()">‹</button>
+                <div class="email-counter">
+                    <span id="counter">0 / 0</span>
+                    <div class="dot-indicator" id="dotIndicator"></div>
+                </div>
+                <button class="nav-btn" id="nextBtn" onclick="nextEmail()">›</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="successMessage" class="message-box success-message"></div>
+    <div id="errorMessage" class="message-box error-message"></div>
+<script>
+const GMAIL_API_KEY = 'AIzaSyCqPOKuJI6X7Ay6fjJDY-occ8HqSIQjlhk'; // Replace with your API key
+const GMAIL_CLIENT_ID = '987431490504-feghrjp2bgo5r4e4bpped1kj9hefv7j2.apps.googleusercontent.com'; // Replace with your client ID
+const GMAIL_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest';
+const GMAIL_SCOPES = 'https://www.googleapis.com/auth/gmail.send';
+
+let tokenClient;
+let gapiInited = false;
+let gisInited = false;
+let isGmailConnected = false;
+
+function gapiLoaded() {
+    gapi.load('client', initializeGapiClient);
+}
+
+async function initializeGapiClient() {
+    try {
+        await gapi.client.init({
+            apiKey: GMAIL_API_KEY,
+            discoveryDocs: [GMAIL_DISCOVERY_DOC],
+        });
+        gapiInited = true;
+        console.log("Gmail GAPI client initialized.");
+        checkGmailAuthReady();
+    } catch (error) {
+        console.error("Error initializing Gmail GAPI client:", error);
+        showMessage('Gmail API initialization failed', 'error');
+    }
+}
+
+function gisLoaded() {
+    try {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: GMAIL_CLIENT_ID,
+            scope: GMAIL_SCOPES,
+            callback: '',
+        });
+        gisInited = true;
+        console.log("Gmail GIS client initialized.");
+        checkGmailAuthReady();
+    } catch (error) {
+        console.error("Error initializing Gmail GIS client:", error);
+        showMessage('Gmail authentication setup failed', 'error');
+    }
+}
+
+function checkGmailAuthReady() {
+    if (gapiInited && gisInited) {
+        console.log('Gmail API ready for authentication');
+    }
+}
+
+function toggleGmailConnection() {
+    const connectBtn = document.getElementById('gmailConnectBtn');
+    const statusIcon = document.getElementById('gmailStatusIcon');
+    const statusTitle = document.getElementById('gmailStatusTitle');
+    const statusSubtitle = document.getElementById('gmailStatusSubtitle');
+    
+    if (!isGmailConnected) {
+        if (!gapiInited || !gisInited) {
+            showMessage('Gmail API is still loading. Please wait a moment.', 'error');
+            return;
+        }
+        
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = `<div class="loading-spinner" style="width: 16px; height: 16px; margin:0; border-width: 2px; display: inline-block;"></div><span style="margin-left: 0.5rem;">Connecting...</span>`;
+        
+        tokenClient.callback = async (resp) => {
+            if (resp.error !== undefined) {
+                console.error('Gmail auth error:', resp);
+                showMessage('Gmail authentication failed', 'error');
+                resetConnectionButton();
+                return;
+            }
+            
+            isGmailConnected = true;
+            statusIcon.className = 'gmail-status-icon connected';
+            statusIcon.textContent = '✅';
+            statusTitle.textContent = 'Gmail Connected';
+            connectBtn.className = 'gmail-connect-btn connected disconnect';
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = `<span>Disconnect</span>`;
+            
+            updateSendButtonState();
+            showMessage('Gmail connected successfully!', 'success');
+        };
+
+        if (gapi.client.getToken() === null) {
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        } else {
+            tokenClient.requestAccessToken({ prompt: '' });
+        }
+        
+    } else {
+        handleGmailSignout();
+    }
+}
+
+function updateSendButtonState() {
+    const sendBtn = document.getElementById('sendBtn');
+    if (!sendBtn) return;
+    
+    if (generatedEmails.length > 0 && currentEmailIndex < generatedEmails.length) {
+        const currentEmail = generatedEmails[currentEmailIndex];
+        const hasEmail = currentEmail.prospect.Email && currentEmail.prospect.Email.trim() !== '';
+        const isConnected = isGmailConnected;
+        
+        sendBtn.disabled = !hasEmail || !isConnected;
+        
+        if (!isConnected) {
+            sendBtn.querySelector('span').textContent = 'Connect Gmail First';
+        } else if (!hasEmail) {
+            sendBtn.querySelector('span').textContent = 'No Email Address';
+        } else {
+            sendBtn.querySelector('span').textContent = `Send to ${currentEmail.prospect.FirstName}`;
+        }
+    }
+}
+
+function resetConnectionButton() {
+    const connectBtn = document.getElementById('gmailConnectBtn');
+    connectBtn.disabled = false;
+    connectBtn.className = 'gmail-connect-btn';
+    connectBtn.innerHTML = `
+        <div class="btn-shine"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span>Connect</span>`;
+}
+
+async function sendEmail() {
+    if (!isGmailConnected) {
+        showMessage('Please connect Gmail first', 'error');
+        return;
+    }
+    
+    const currentEmailData = generatedEmails[currentEmailIndex];
+    if (!currentEmailData || !currentEmailData.prospect.Email) {
+        showMessage('No email address available for this prospect', 'error');
+        return;
+    }
+    
+    const sendBtn = document.getElementById('sendBtn');
+    const originalBtnHTML = sendBtn.innerHTML;
+    
+    // Read from the editable textarea
+    const fullEmailText = document.getElementById('emailPreview').value;
+
+    // Parse subject and body from the textarea
+    let subject = `A message for ${currentEmailData.prospect.Company}`;
+    let body = fullEmailText;
+    const subjectMatch = fullEmailText.match(/Subject:\s*(.*)/i);
+    if (subjectMatch && subjectMatch[1]) {
+        subject = subjectMatch[1].trim();
+        const bodyStartIndex = fullEmailText.indexOf(subjectMatch[0]) + subjectMatch[0].length;
+        body = fullEmailText.substring(bodyStartIndex).trim();
+    }
+    
+    try {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = `<div class="loading-spinner" style="width:16px; height:16px; display:inline-block; border-width:2px; margin-right:0.5rem;"></div> <span>Sending...</span>`;
+        
+        const emailLines = [
+            `From: ${currentEmailData.sender.firstName} ${currentEmailData.sender.lastName} <${currentEmailData.sender.email}>`,
+            `To: ${currentEmailData.prospect.Email}`,
+            `Subject: ${subject}`,
+            'Content-Type: text/plain; charset=utf-8',
+            '',
+            body
+        ];
+        const email = emailLines.join('\n');
+        
+        const base64EncodedEmail = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_');
+        
+        await gapi.client.gmail.users.messages.send({
+            'userId': 'me',
+            'resource': { 'raw': base64EncodedEmail }
+        });
+        
+        showMessage(`Email sent successfully to ${currentEmailData.prospect.FirstName}!`, 'success');
+        
+    } catch (error) {
+        console.error('Error sending email:', error);
+        const errorMessage = error.result?.error?.message || error.message || 'Unknown error';
+        showMessage(`Failed to send email: ${errorMessage}`, 'error');
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalBtnHTML;
+        updateSendButtonState();
+    }
+}
+
+function handleGmailSignout() {
+    const token = gapi.client.getToken();
+    if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token);
+        gapi.client.setToken('');
+    }
+    
+    isGmailConnected = false;
+    
+    const statusIcon = document.getElementById('gmailStatusIcon');
+    const statusTitle = document.getElementById('gmailStatusTitle');
+    statusIcon.className = 'gmail-status-icon disconnected';
+    statusIcon.textContent = '📧';
+    statusTitle.textContent = 'Gmail Not Connected';
+    
+    resetConnectionButton();
+    updateSendButtonState();
+    showMessage('Gmail disconnected', 'success');
+}
+// Global variables
+let prospects = [];
+let generatedEmails = [];
+let currentEmailIndex = 0;
+let currentInputMode = 'csv';
+let genAI = null;
+
+// Initialize Gemini AI
+async function initializeAI() {
+    try {
+        const API_KEY = 'AIzaSyAMIen9b701UekKNPVEuICV42kFZmhoUs4';
+        if (API_KEY === 'YOUR_GEMINI_API_KEY') {
+            console.warn('Please set your Gemini API key');
+            return false;
+        }
+        
+        const { GoogleGenerativeAI } = await import('https://esm.run/@google/generative-ai');
+        genAI = new GoogleGenerativeAI(API_KEY);
+        console.log('Gemini AI initialized successfully');
+        return true;
+    } catch (error) {
+        console.error('Failed to initialize AI:', error);
+        return false;
+    }
+}
+
+// Initialize particles
+function createParticles() {
+    const container = document.getElementById('particleContainer');
+    const particleCount = 50;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        container.appendChild(particle);
+    }
+}
+
+// Toggle between CSV and manual input modes
+function toggleInputMode(mode) {
+    currentInputMode = mode;
+    document.getElementById('csvToggle').classList.toggle('active', mode === 'csv');
+    document.getElementById('manualToggle').classList.toggle('active', mode === 'manual');
+    document.getElementById('csvSection').classList.toggle('active', mode === 'csv');
+    document.getElementById('manualSection').classList.toggle('active', mode === 'manual');
+    
+    const generateBtn = document.getElementById('generateBtn');
+    generateBtn.querySelector('span').textContent = mode === 'csv' ? 'Generate Emails' : 'Generate Email';
+    
+    resetForm();
+}
+
+// Reset form data
+function resetForm() {
+    if (currentInputMode === 'csv') {
+        const csvInput = document.getElementById('csvFileInput');
+        if (csvInput) csvInput.value = '';
+    } else {
+        const fields = ['firstName', 'lastName', 'company', 'role', 'email'];
+        fields.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.value = '';
+        });
+    }
+    
+    prospects = [];
+    generatedEmails = [];
+    hideEmailPreview();
+}
+
+// Validate form inputs
+function validateInputs() {
+    const requiredSenderFields = ['senderFirstName', 'senderLastName', 'senderCompany', 'senderRole', 'senderEmail'];
+    for (const fieldId of requiredSenderFields) {
+        if (!document.getElementById(fieldId).value.trim()) {
+            showMessage('Please fill in all required sender information fields.', 'error');
+            return false;
+        }
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(document.getElementById('senderEmail').value.trim())) {
+        showMessage('Please enter a valid sender email address.', 'error');
+        return false;
+    }
+    
+    if (!document.getElementById('emailPurpose').value.trim()) {
+        showMessage('Please enter the email purpose/goal.', 'error');
+        return false;
+    }
+
+    if (currentInputMode === 'csv') {
+        if (!document.getElementById('csvFileInput').files[0]) {
+            showMessage('Please upload a CSV file.', 'error');
+            return false;
+        }
+    } else {
+        const requiredManualFields = ['firstName', 'lastName', 'company', 'role'];
+        for (const fieldId of requiredManualFields) {
+            if (!document.getElementById(fieldId).value.trim()) {
+                showMessage('Please fill in all required prospect fields.', 'error');
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// Handle CSV file generation
+function handleCSVGeneration() {
+    return new Promise((resolve, reject) => {
+        Papa.parse(document.getElementById('csvFileInput').files[0], {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                const parsedProspects = results.data.filter(row => 
+                    row.FirstName && row.LastName && row.Company && row.Role
+                );
+                
+                if (parsedProspects.length === 0) {
+                    showMessage('No valid prospects found in CSV. Check for required columns: FirstName, LastName, Company, Role.', 'error');
+                    reject(new Error('No valid prospects'));
+                    return;
+                }
+                resolve(parsedProspects);
+            },
+            error: (error) => reject(error)
+        });
+    });
+}
+
+// Handle manual entry
+function handleManualGeneration() {
+    const prospect = {
+        FirstName: document.getElementById('firstName').value.trim(),
+        LastName: document.getElementById('lastName').value.trim(),
+        Company: document.getElementById('company').value.trim(),
+        Role: document.getElementById('role').value.trim(),
+        Email: document.getElementById('email').value.trim() || ''
+    };
+    return [prospect];
+}
+
+// Main function to generate emails with AI
+async function generateEmails(prospects, purpose, language) {
+    const emails = [];
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const senderInfo = {
+        firstName: document.getElementById('senderFirstName').value.trim(),
+        lastName: document.getElementById('senderLastName').value.trim(),
+        company: document.getElementById('senderCompany').value.trim(),
+        role: document.getElementById('senderRole').value.trim(),
+        email: document.getElementById('senderEmail').value.trim(),
+        phone: document.getElementById('senderPhone').value.trim(),
+        bio: document.getElementById('senderBio').value.trim()
+    };
+    
+    for (let i = 0; i < prospects.length; i++) {
+        const prospect = prospects[i];
+        
+        document.getElementById('processingText').textContent = 
+            `AI is working on an email for ${prospect.FirstName} (${i + 1}/${prospects.length})...`;
+        
+        const prompt = `
+        Write a personalized cold outreach email in ${language}.
+        SENDER: ${senderInfo.firstName} ${senderInfo.lastName}, ${senderInfo.role} at ${senderInfo.company}. Background: ${senderInfo.bio}.
+        PROSPECT: ${prospect.FirstName} ${prospect.LastName}, ${prospect.Role} at ${prospect.Company}.
+        GOAL: ${purpose}.
+        REQUIREMENTS:
+        1. Write the entire email (subject and body) in fluent, natural-sounding ${language}.
+        2. Personalize using both sender and prospect info.
+        3. Be concise (150-200 words).
+        4. Include a clear call-to-action in ${language}.
+        5. Sound professional but conversational, not overly salesy.
+        6. Create a compelling subject line in ${language}.
+        OUTPUT FORMAT (Strict):
+        Subject: [Your subject line in ${language}]
+        
+        [Email body in ${language}]
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const emailContent = response.text();
+        
+        const subjectMatch = emailContent.match(/Subject:\s*(.+)/i);
+        const subject = subjectMatch ? subjectMatch[1].trim() : `A ${language} message for ${prospect.Company}`;
+        const emailBody = emailContent.replace(/Subject:\s*.+\n*/i, '').trim();
+        
+        emails.push({
+            prospect: prospect,
+            sender: senderInfo,
+            content: `${emailBody}\n\nBest regards,\n${senderInfo.firstName} ${senderInfo.lastName}\n${senderInfo.role} at ${senderInfo.company}\n${senderInfo.email}${senderInfo.phone ? `\n${senderInfo.phone}` : ''}`,
+            subject: subject,
+            recipientInfo: `${prospect.FirstName} ${prospect.LastName} @ ${prospect.Company}`
+        });
+    }
+    return emails;
+}
+
+
+async function handleGenerateEmails() {
+    if (!validateInputs() || !genAI) {
+        if (!genAI) showMessage('AI not initialized. Please refresh.', 'error');
+        return;
+    }
+    
+    try {
+        showProcessing(true);
+        const emailPurpose = document.getElementById('emailPurpose').value.trim();
+        const language = document.getElementById('emailLanguage').value;
+        const localProspects = (currentInputMode === 'csv') ? await handleCSVGeneration() : handleManualGeneration();
+
+        if (localProspects && localProspects.length > 0) {
+            prospects = localProspects;
+            generatedEmails = await generateEmails(prospects, emailPurpose, language);
+            showEmailPreview();
+        }
+    } catch (error) {
+        console.error('Error during generation:', error);
+        showMessage('Failed to generate emails. Check CSV format or try again.', 'error');
+    } finally {
+        showProcessing(false);
+    }
+}
+         
+
+function showEmailPreview() {
+    document.getElementById('emailSliderCard').classList.remove('hidden');
+    document.getElementById('gmailConnectionSection').classList.remove('hidden');
+    currentEmailIndex = 0;
+    updateEmailDisplay();
+    
+    const message = `Generated ${generatedEmails.length} AI-personalized email${generatedEmails.length > 1 ? 's' : ''}!`;
+    showMessage(message, 'success');
+}
+
+function hideEmailPreview() {
+    document.getElementById('emailSliderCard').classList.add('hidden');
+    document.getElementById('gmailConnectionSection').classList.add('hidden');
+}
+
+function updateEmailDisplay() {
+    if (generatedEmails.length === 0) return;
+    
+    const currentEmail = generatedEmails[currentEmailIndex];
+    document.getElementById('emailPreview').value = `Subject: ${currentEmail.subject}\n\n${currentEmail.content}`;
+    
+    let recipientInfo = document.querySelector('.recipient-info');
+    if (!recipientInfo) {
+        recipientInfo = document.createElement('div');
+        recipientInfo.className = 'recipient-info';
+        const emailPreviewEl = document.getElementById('emailPreview');
+        emailPreviewEl.parentNode.insertBefore(recipientInfo, emailPreviewEl);
+    }
+    recipientInfo.textContent = `For: ${currentEmail.recipientInfo}`;
+    
+    document.getElementById('counter').textContent = `${currentEmailIndex + 1} / ${generatedEmails.length}`;
+    document.getElementById('prevBtn').disabled = currentEmailIndex === 0;
+    document.getElementById('nextBtn').disabled = currentEmailIndex === generatedEmails.length - 1;
+    
+    updateDotIndicators();
+    updateSendButtonState();
+}
+
+function updateDotIndicators() {
+    const dotIndicator = document.getElementById('dotIndicator');
+    dotIndicator.innerHTML = '';
+    const maxDots = Math.min(generatedEmails.length, 10);
+    
+    for (let i = 0; i < maxDots; i++) {
+        const dot = document.createElement('div');
+        dot.className = i === currentEmailIndex ? 'dot active' : 'dot';
+        dot.onclick = () => {
+            currentEmailIndex = i;
+            updateEmailDisplay();
+        };
+        dotIndicator.appendChild(dot);
+    }
+}
+
+function prevEmail() {
+    if (currentEmailIndex > 0) {
+        currentEmailIndex--;
+        updateEmailDisplay();
+    }
+}
+
+function nextEmail() {
+    if (currentEmailIndex < generatedEmails.length - 1) {
+        currentEmailIndex++;
+        updateEmailDisplay();
+    }
+}
+
+async function copyEmail() {
+    try {
+        await navigator.clipboard.writeText(document.getElementById('emailPreview').value);
+        showMessage('Email copied to clipboard!', 'success');
+    } catch (err) {
+        showMessage('Failed to copy email.', 'error');
+    }
+}
+
+function showProcessing(show) {
+    const processingSection = document.getElementById('processingStatus');
+    const generateBtn = document.getElementById('generateBtn');
+    
+    processingSection.style.display = show ? 'flex' : 'none';
+    processingSection.querySelector('.loading-spinner').style.display = show ? 'block' : 'none';
+    generateBtn.disabled = show;
+}
+
+function showMessage(message, type) {
+    const messageBox = document.getElementById(type === 'success' ? 'successMessage' : 'errorMessage');
+    messageBox.textContent = message;
+    messageBox.classList.add('show');
+    setTimeout(() => messageBox.classList.remove('show'), 4000);
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    createParticles();
+    await initializeAI();
+    
+    document.getElementById('generateBtn').addEventListener('click', handleGenerateEmails);
+    
+    const inputsToMonitor = ['firstName', 'lastName', 'company', 'role', 'email', 'csvFileInput', 'emailPurpose'];
+    inputsToMonitor.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            const eventType = element.type === 'file' ? 'change' : 'input';
+            element.addEventListener(eventType, () => {
+                if (generatedEmails.length > 0) {
+                    hideEmailPreview();
+                    generatedEmails = [];
+                }
+            });
+        }
+    });
+});
+
+window.toggleInputMode = toggleInputMode;
+window.prevEmail = prevEmail;
+window.nextEmail = nextEmail;
+window.copyEmail = copyEmail;
+window.sendEmail = sendEmail;
+window.toggleGmailConnection = toggleGmailConnection;
+</script>
+<script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyDmWNfHVuzEZariM7hPunt3zXeEXKSBlk0",
+            authDomain: "project01-6dc41.firebaseapp.com",
+            projectId: "project01-6dc41",
+            storageBucket: "project01-6dc41.firebasestorage.app",
+            messagingSenderId: "714586325510",
+            appId: "1:714586325510:web:8d57e4654877ff298b7987",
+            measurementId: "G-0BM2TWETQW"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, (user) => {
+            const LOGIN_PAGE_URL = "/loginsignupsys.html";
+            const userProfileContainer = document.getElementById('userProfileContainer');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+
+            if (!user) {
+                console.log("User not authenticated. Redirecting...");
+                if (userProfileContainer) userProfileContainer.classList.add('hidden');
+                document.getElementById('userDropdownMenu')?.classList.add('hidden');
+                
+                if (!window.location.pathname.endsWith(LOGIN_PAGE_URL)) { 
+                    window.location.replace(LOGIN_PAGE_URL); 
+                }
+            } else {
+                console.log("User is signed in:", user.email);
+                if (userProfileContainer) userProfileContainer.classList.remove('hidden');
+                if (userNameDisplay) {
+                    userNameDisplay.textContent = user.displayName || user.email.split('@')[0]; 
+                }
+            }
+        });
+
+        const logoutButton = document.getElementById('logoutButton'); 
+        const userDropdownToggle = document.getElementById('userDropdownToggle');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    console.log('User signed out successfully.');
+                } catch (error) {
+                    console.error('Error signing out:', error);
+                    alert('Error signing out.');
+                }
+            });
+        }
+
+        if (userDropdownToggle && userDropdownMenu) {
+            userDropdownToggle.addEventListener('click', (event) => {
+                event.stopPropagation(); 
+                userDropdownMenu.classList.toggle('hidden');
+                const chevronIcon = userDropdownToggle.querySelector('svg');
+                if (chevronIcon) {
+                    chevronIcon.style.transform = userDropdownMenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!userDropdownMenu.contains(event.target) && !userDropdownToggle.contains(event.target)) {
+                    userDropdownMenu.classList.add('hidden');
+                    const chevronIcon = userDropdownToggle.querySelector('svg');
+                    if (chevronIcon) chevronIcon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
