@@ -1126,13 +1126,9 @@
                         <div class="gmail-status-subtitle" id="gmailStatusSubtitle">Connect to send directly</div>
                     </div>
                 </div>
-                <button class="gmail-connect-btn" id="gmailConnectBtn" onclick="toggleGmailConnection()">
-                    <div class="btn-shine"></div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
-                    </svg>
-                    <span>Connect</span>
+                <button class="gmail-connect-btn" id="gmailConnectBtn" onclick="toggleGmailConnection()" disabled>
+    <div class="loading-spinner" style="width: 16px; height: 16px; margin: 0; border-width: 2px; display: inline-block;"></div>
+    <span style="margin-left: 0.5rem;">Loading API...</span>
                 </button>
             </div>
             <div id="userProfileContainer" class="user-profile-container hidden">
@@ -1512,6 +1508,19 @@ function gisLoaded() {
 function checkGmailAuthReady() {
     if (gapiInited && gisInited) {
         console.log('Gmail API ready for authentication');
+        const connectBtn = document.getElementById('gmailConnectBtn');
+        if (connectBtn) {
+            connectBtn.disabled = false;
+            // Restore the original button content
+            connectBtn.innerHTML = `
+                <div class="btn-shine"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <span>Connect</span>
+            `;
+        }
     }
 }
 
