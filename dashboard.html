@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IgniteInbox - Leads Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+    
+    .hamburger-btn {
+    position: relative;
+    top: 1.25rem;
+    left: 1.25rem;
+    z-index: 1020; /* Must be on top of everything */
+    background: rgba(30, 30, 55, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* ADD THIS NEW RULE */
+body.sidebar-is-open .hamburger-btn {
+    transform: translateX(250px); /* Moves it 250px to the right */
+}
+.hamburger-btn:hover {
+    background: rgba(255, 165, 0, 0.2);
+}
+.hamburger-btn svg {
+    fill: white;
+}
+
+/* The Sidebar Container */
+/* --- (ADD this new rule in its place) --- */
+.sidebar {
+    position: fixed;
+    top: 1rem; /* Positions it slightly down from the top edge */
+    left: 1rem;  /* Positions it slightly in from the left edge */
+    width: 240px;
+    height: auto; /* THIS IS THE KEY: Height now fits the content */
+    background: #1f1f41; /* Slightly lighter for better depth */
+    z-index: 1010;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px; /* Rounded corners for a modern look */
+    padding: 0.75rem 0; /* Vertical padding for the menu items inside */
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    transform: translateX(-120%); /* Hides it further off-screen */
+    opacity: 0; /* Fade it out when hidden */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+/* The "Open" State (toggled by JS) */
+/* Add this new rule RIGHT AFTER the .sidebar rule */
+.sidebar.is-open {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* The dark overlay for the background */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1005;
+    opacity: 0;
+    pointer-events: none; /* Can't be clicked by default */
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* The "Open" State for the overlay */
+.sidebar-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto; /* Becomes clickable to close the menu */
+}
+
+
+/* Styling for the menu items */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu a, .sidebar-logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    width: 100%;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: inherit;
+    text-align: left;
+}
+
+.sidebar-menu a:hover, .sidebar-logout-btn:hover {
+    background-color: rgba(255, 165, 0, 0.1);
+    color: white;
+    border-left-color: #ffa500;
+},
+        /* --- Base & Desktop Styles --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #2d1b69 100%); min-height: 100vh; color: white; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .header { text-align: center; margin-bottom: 2rem; margin-top: 1rem; }
+        h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 0.75rem; background: linear-gradient(135deg, #ffffff 0%, #ffa500 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .tagline { font-size: 1.2rem; font-weight: 600; color: rgba(255, 165, 0, 0.9); }
+        .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+        .card-header-title { display: flex; align-items: center; gap: 1rem; }
+        .card-icon { width: 2.5rem; height: 2.5rem; background: linear-gradient(135deg, #ff4500, #ffa500); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+        .card-title { font-size: 1.5rem; font-weight: 700; color: white; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(135deg, #ff4500, #ffa500); color: white; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .header-top-right { position: absolute; top: 1.5rem; right: 1.5rem; z-index: 1002; }
+        .user-profile-container, .user-info-display { display: flex; align-items: center; } .user-profile-container { position: relative; color: white; } .user-info-display { gap: 0.5rem; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); padding: 0.6rem 1rem; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.15); } #userNameDisplay { font-size: 0.9rem; font-weight: 600; } .dropdown-toggle { background: transparent; border: none; color: white; padding: 0.25rem; cursor: pointer; } .dropdown-menu { position: absolute; top: calc(100% + 10px); right: 0; background: rgba(30, 30, 55, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); padding: 0.5rem; min-width: 180px; z-index: 1000; } .dropdown-item { display: block; width: 100%; padding: 0.75rem 1rem; background: transparent; border: none; font-size: 0.9rem; font-weight: 500; text-align: left; cursor: pointer; border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; text-decoration: none; color: rgba(255, 255, 255, 0.9); } .dropdown-item:hover { background-color: rgba(255, 255, 255, 0.1); } .dropdown-item.logout:hover { background-color: rgba(234, 67, 53, 0.25); }
+        .hidden { display: none !important; }
+
+        /* File Upload Styles */
+        .file-upload-wrapper{position:relative;display:flex;align-items:center;background:rgba(255,255,255,.1);border:1px dashed rgba(255,255,255,.3);border-radius:12px;padding:.5rem;transition:all .2s ease}.file-upload-wrapper:hover{border-color:rgba(255,165,0,.5)}#csvFileInput{opacity:0;position:absolute;width:100%;height:100%;cursor:pointer}.file-upload-label{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.75rem 1.25rem;border-radius:8px;font-weight:600;cursor:pointer;transition:background-color .2s ease; flex-shrink: 0;}.file-upload-label:hover{background:rgba(255,255,255,.25)}#fileName{flex-grow:1;padding-left:1rem;color:rgba(255,255,255,.7);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+        /* Leads Table Styles */
+        .leads-table{width:100%;border-collapse:collapse;margin-top:1.5rem}.leads-table th,.leads-table td{padding:1rem 1.25rem;text-align:left;border-bottom:1px solid rgba(255,255,255,.1)}.leads-table th{color:#ffa500;font-weight:600;font-size:.9rem;text-transform:uppercase}.leads-table td{font-size:.95rem;color:rgba(255,255,255,.85); vertical-align: middle;}.leads-table tr:hover{background-color:rgba(255,255,255,.05)}
+        .action-buttons { display: flex; gap: 0.75rem; justify-content: flex-end; }
+        .btn-action { background: none; border: none; cursor: pointer; padding: 0.25rem; color: rgba(255, 255, 255, 0.6); transition: all 0.2s ease; }
+        .btn-action:hover { color: white; transform: scale(1.1); }
+        .btn-edit:hover { color: #8ab4f8; }
+        .btn-remove:hover { color: #f28b82; }
+
+        /* General Utility Styles */
+        .no-leads-message{text-align:center;padding:3rem;color:rgba(255,255,255,.6)}.loading-spinner{border:4px solid rgba(255,255,255,.3);border-top:4px solid #ffa500;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:2rem auto}@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+        .message-box { position: fixed; top: 1.5rem; right: 1.5rem; padding: 1rem 1.5rem; border-radius: 12px; backdrop-filter: blur(20px); transform: translateX(calc(100% + 2rem)); transition: transform 0.4s ease-in-out; z-index: 1051; color: white; font-weight: 600; } .message-box.show { transform: translateX(0); } .success-message { background: rgba(76, 175, 80, 0.9); border-left: 4px solid #4CAF50; } .error-message { background: rgba(244, 67, 54, 0.9); border-left: 4px solid #f44336; }
+        
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 1050; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; } .modal-overlay.show { opacity: 1; pointer-events: auto; } .modal-content { background: #1a1a3a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 2rem; width: 90%; max-width: 500px; transform: scale(0.95); transition: transform 0.3s ease; } .modal-overlay.show .modal-content { transform: scale(1); } .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem; } .modal-header h2 { color: white; } .modal-close-btn { background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; line-height: 1; } .modal-body .form-input { width: 100%; padding: 0.85rem 1rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 1rem; margin-bottom: 1rem; } .modal-body .form-input:focus { outline: none; border-color: #ffa500; } .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; } .full-width { grid-column: 1 / -1; }
+
+        /* --- NEW & IMPROVED MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .header {
+                margin-top: 4rem; /* Make space for user profile dropdown */
+                margin-bottom: 1.5rem;
+            }
+            h1 { font-size: 2rem; }
+            .tagline { font-size: 1rem; }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.25rem;
+            }
+            
+            /* Hide the table header on mobile, it's replaced by data-labels */
+            .leads-table thead {
+                display: none;
+            }
+
+            /* Make each table row a self-contained card */
+            .leads-table tr {
+                display: block;
+                margin-bottom: 1rem;
+                border-radius: 12px;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+            }
+            
+            /* Style each cell to be a labeled row */
+            .leads-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.8rem 0.5rem;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+                text-align: right;
+                word-break: break-all; /* Prevents long emails from breaking layout */
+            }
+
+            .leads-table td:last-child {
+                border-bottom: none;
+            }
+
+            /* The magic: Add the label before the data from the 'data-label' attribute */
+            .leads-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #ffa500;
+                text-align: left;
+                padding-right: 1rem;
+                flex-shrink: 0;
+            }
+
+            /* Adjust action buttons for the card layout */
+            .action-buttons {
+                justify-content: flex-end; /* Keep buttons to the right */
+            }
+
+            /* Collapse modal form grid to a single column */
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .message-box {
+                top: 1rem;
+                left: 1rem;
+                right: 1rem;
+                width: auto;
+                transform: translateY(-200%);
+            }
+            .message-box.show {
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="hamburgerBtn" class="hamburger-btn">
+    <svg viewBox="0 0 100 80" width="24" height="24">
+        <rect width="100" height="12" rx="8"></rect>
+        <rect y="30" width="100" height="12" rx="8"></rect>
+        <rect y="60" width="100" height="12" rx="8"></rect>
+    </svg>
+</button>
+
+<nav id="sidebar" class="sidebar">
+    <ul class="sidebar-menu">
+        <li>
+            <a href="./index.html">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <span>Home</span>
+            </a>
+        </li>
+        <li>
+            <a href="./dashboard.html">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Leads</span>
+            </a>
+        </li>
+        <li>
+            <button id="sidebarLogoutBtn" class="sidebar-logout-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span>Log out</span>
+            </button>
+        </li>
+    </ul>
+</nav>
+
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <div class="container">
+        <!-- User Profile Dropdown (No Changes) -->
+        <div class="header-top-right">
+            <div id="userProfileContainer" class="user-profile-container hidden">
+                <div class="user-info-display">
+                    <span id="userNameDisplay"></span>
+                    <button id="userDropdownToggle" class="dropdown-toggle">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                </div>
+                <div id="userDropdownMenu" class="dropdown-menu hidden">
+                    <a href="index (1) (9).html" class="dropdown-item">AI Generator</a>
+                    <button id="logoutButton" class="dropdown-item logout">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="header">
+            <h1>Leads Dashboard</h1>
+            <p class="tagline">Manage Your Prospects</p>
+        </div>
+
+        <div class="card" id="uploadCard">
+             <div class="card-header">
+                <div class="card-header-title">
+                    <div class="card-icon">📥</div>
+                    <div class="card-title">Import Leads</div>
+                </div>
+            </div>
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">Upload a CSV with: <strong>FirstName, LastName, Company, Role, Email</strong>.</p>
+            <div class="file-upload-wrapper">
+                <input type="file" id="csvFileInput" accept=".csv">
+                <label for="csvFileInput" class="file-upload-label">Choose File</label>
+                <span id="fileName">No file selected</span>
+            </div>
+            <button id="uploadBtn" class="btn btn-primary" style="margin: 1.5rem auto 0 auto; display: block;">Upload CSV</button>
+        </div>
+
+        <div class="card" id="leadsListCard">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <div class="card-icon">📇</div>
+                    <div class="card-title">My Leads</div>
+                </div>
+                <button id="addLeadBtn" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.6rem 1rem;">+ Add Manually</button>
+            </div>
+            
+            <div id="loader" class="loading-spinner"></div>
+            
+            <div id="leadsTableContainer" class="leads-table-container hidden">
+                <table class="leads-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="noLeadsMessage" class="no-leads-message hidden">
+                <h3>No leads found.</h3>
+                <p>Upload a CSV or add a lead manually to get started.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead Add/Edit Modal (No changes to HTML structure) -->
+    <div id="leadModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Lead</h2>
+                <button id="modalCloseBtn" class="modal-close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="leadForm">
+                    <input type="hidden" id="leadId">
+                    <div class="form-grid">
+                        <input type="text" id="leadFirstName" class="form-input" placeholder="First Name *" required>
+                        <input type="text" id="leadLastName" class="form-input" placeholder="Last Name *" required>
+                    </div>
+                    <input type="text" id="leadCompany" class="form-input full-width" placeholder="Company *" required>
+                    <input type="text" id="leadRole" class="form-input full-width" placeholder="Role *" required>
+                    <input type="email" id="leadEmail" class="form-input full-width" placeholder="Email Address *" required>
+                    <button type="submit" id="saveLeadBtn" class="btn btn-primary" style="width: 100%;">Add Lead</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="successMessage" class="message-box success-message"></div>
+    <div id="errorMessage" class="message-box error-message"></div>
+    
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="dashboard.js" type="module"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 // --- 1. FIREBASE IMPORTS ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
 // --- 2. FIREBASE CONFIGURATION ---
 const firebaseConfig = {
@@ -115,6 +115,36 @@ async function loadSenderProfile(user) {
     }
 }
 
+/**
+ * Fetches all leads from the user's "leads" subcollection in Firestore.
+ * @param {object} db - The Firestore database instance.
+ * @param {string} userId - The UID of the current user.
+ * @returns {Promise<Array<object>>} A promise that resolves with an array of lead objects.
+ */
+export async function fetchUserLeads(db, userId) {
+    if (!userId) {
+        console.error("User ID is required to fetch leads.");
+        return [];
+    }
+    try {
+        const leads = [];
+        const leadsCollectionRef = collection(db, "users", userId, "leads");
+        const querySnapshot = await getDocs(leadsCollectionRef);
+        querySnapshot.forEach(doc => {
+            leads.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        return leads;
+    } catch (error) {
+        console.error("Error fetching user leads:", error);
+        if(window.showMessage) {
+            window.showMessage('Could not fetch your leads. Please try again.', 'error');
+        }
+        return [];
+    }
+}
 
 // --- 5. MAIN AUTHENTICATION LISTENER ---
 // This is the entry point that runs automatically.
