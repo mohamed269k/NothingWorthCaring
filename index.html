@@ -2205,7 +2205,6 @@ function resetConnectionButton() {
         <span>Connect</span>`;
 }
 
-// In index.html, inside the main <script> tag (NOT the module)
 async function sendEmail() {
     if (!isGmailConnected) {
         showMessage('Please connect Gmail first', 'error');
@@ -2214,7 +2213,12 @@ async function sendEmail() {
     
     const currentEmailData = generatedEmails[currentEmailIndex];
     const user = window.auth.currentUser;
-         
+            if (user && generatedEmails.length > 0) {
+                const statsDocRef = doc(db, 'users', user.uid, 'dashboard_stats', 'summary');
+                await setDoc(statsDocRef, {
+                    generatedEmailsCount: increment(generatedEmails.length)
+                }, { merge: true }); // Use merge: true to avoid overwriting other stats
+            }
             // --- END: NEW CODE TO WRITE STATS ---
     if (!currentEmailData || !currentEmailData.prospect.Email) {
         showMessage('No email address available for this prospect', 'error');
@@ -2269,14 +2273,11 @@ async function sendEmail() {
         sendBtn.innerHTML = originalBtnHTML;
         updateSendButtonState();
     }
- if (user && generatedEmails.length > 0) {
-                const statsDocRef = doc(db, 'users', user.uid, 'dashboard_stats', 'summary');
-                await setDoc(statsDocRef, {
-                    generatedEmailsCount: increment(generatedEmails.length)
-                }, { merge: true }); // Use merge: true to avoid overwriting other stats
- }
- }
+}
 
+// In index (1) (9).html, inside the main <script> tag
+
+// In index (1) (9).html's main <script> tag
 
 // 1. ADD this new helper function to update the dropdown's label
 function updateLeadSelectionCounter() {
