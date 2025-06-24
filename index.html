@@ -2205,6 +2205,8 @@ function resetConnectionButton() {
         <span>Connect</span>`;
 }
 
+// In index.html, inside the main <script> tag (NOT the module)
+
 async function sendEmail() {
     if (!isGmailConnected) {
         showMessage('Please connect Gmail first', 'error');
@@ -2212,9 +2214,6 @@ async function sendEmail() {
     }
     
     const currentEmailData = generatedEmails[currentEmailIndex];
-    const user = window.auth.currentUser;
-         
-            // --- END: NEW CODE TO WRITE STATS ---
     if (!currentEmailData || !currentEmailData.prospect.Email) {
         showMessage('No email address available for this prospect', 'error');
         return;
@@ -2223,10 +2222,8 @@ async function sendEmail() {
     const sendBtn = document.getElementById('sendBtn');
     const originalBtnHTML = sendBtn.innerHTML;
     
-    // Read from the editable textarea
+    // ... (logic to parse subject and body remains the same)
     const fullEmailText = document.getElementById('emailPreview').value;
-
-    // Parse subject and body from the textarea
     let subject = `A message for ${currentEmailData.prospect.Company}`;
     let body = fullEmailText;
     const subjectMatch = fullEmailText.match(/Subject:\s*(.*)/i);
@@ -2249,32 +2246,50 @@ async function sendEmail() {
             body
         ];
         const email = emailLines.join('\n');
-        
         const base64EncodedEmail = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_');
         
+        // --- STEP 1: SEND THE EMAIL VIA GMAIL API ---
         await gapi.client.gmail.users.messages.send({
             'userId': 'me',
             'resource': { 'raw': base64EncodedEmail }
         });
         
         showMessage(`Email sent successfully to ${currentEmailData.prospect.FirstName}!`, 'success');
+
+        // --- STEP 2: UPDATE THE FIRESTORE STATS (IMPROVED LOGIC) ---
+        const user = window.auth.currentUser;
+        if (user) {
+            try {
+                // We need to access 'db' and 'doc', 'setDoc', 'increment' from the global scope
+                // where the firebase module script defined them.
+                const { db, doc, setDoc, increment } = window; 
+                const statsDocRef = doc(db, 'users', user.uid, 'dashboard_stats', 'summary');
+                
+                await setDoc(statsDocRef, {
+                    contactedLeadsCount: increment(1)
+                }, { merge: true }); // merge: true is crucial!
+
+                console.log("Successfully updated contactedLeadsCount in Firestore.");
+
+            } catch (firestoreError) {
+                console.error("Error updating stats in Firestore:", firestoreError);
+                // We don't show this error to the user, as the email itself was sent.
+                // But we log it for debugging.
+            }
+        } else {
+            console.warn("Could not update stats because user was not found (window.auth.currentUser is null).");
+        }
         
     } catch (error) {
-        console.error('Error sending email:', error);
-        const errorMessage = error.result?.error?.message || error.message || 'Unknown error';
+        console.error('Error sending email via Gmail API:', error);
+        const errorMessage = error.result?.error?.message || 'Unknown Gmail API error';
         showMessage(`Failed to send email: ${errorMessage}`, 'error');
     } finally {
         sendBtn.disabled = false;
         sendBtn.innerHTML = originalBtnHTML;
         updateSendButtonState();
     }
- if (user && generatedEmails.length > 0) {
-                const statsDocRef = doc(db, 'users', user.uid, 'dashboard_stats', 'summary');
-                await setDoc(statsDocRef, {
-                    generatedEmailsCount: increment(generatedEmails.length)
-                }, { merge: true }); // Use merge: true to avoid overwriting other stats
  }
-}
 
 // In index (1) (9).html, inside the main <script> tag
 
