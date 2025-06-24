@@ -1,0 +1,3132 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IgniteInbox - AI Email Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+    /* Style for the new help button */
+.help-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.help-btn:hover {
+    background: rgba(255, 165, 0, 0.15);
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Style for the text inside the help modal */
+.help-modal-body p {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+.help-modal-body h3 {
+    color: #ffa500;
+    margin-bottom: 1rem;
+}
+    /* --- Add these styles for Sender Info Save/Edit --- */
+/* --- Add these styles for Sender Info Save/Edit --- */
+/* In index (1) (9).html, add these styles inside your <style> tag */
+/* Add these rules INSIDE the @media (max-width: 768px) block */
+
+/* ... a bunch of your other styles ... */
+
+/* =================================================================== */
+/* --- NEW, CORRECT SIDEBAR STYLES --- */
+/* =================================================================== */
+
+/* The Hamburger Button */
+.hamburger-btn {
+    position: relative;
+    top: 1.25rem;
+    left: 1.25rem;
+    z-index: 1020; /* Must be on top of everything */
+    background: rgba(30, 30, 55, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* ADD THIS NEW RULE */
+body.sidebar-is-open .hamburger-btn {
+    transform: translateX(250px); /* Moves it 250px to the right */
+}
+.hamburger-btn:hover {
+    background: rgba(255, 165, 0, 0.2);
+}
+.hamburger-btn svg {
+    fill: white;
+}
+
+/* The Sidebar Container */
+/* --- (ADD this new rule in its place) --- */
+.sidebar {
+    position: fixed;
+    top: 1rem; /* Positions it slightly down from the top edge */
+    left: 1rem;  /* Positions it slightly in from the left edge */
+    width: 240px;
+    height: auto; /* THIS IS THE KEY: Height now fits the content */
+    background: #1f1f41; /* Slightly lighter for better depth */
+    z-index: 1010;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px; /* Rounded corners for a modern look */
+    padding: 0.75rem 0; /* Vertical padding for the menu items inside */
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    transform: translateX(-120%); /* Hides it further off-screen */
+    opacity: 0; /* Fade it out when hidden */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+/* The "Open" State (toggled by JS) */
+/* Add this new rule RIGHT AFTER the .sidebar rule */
+.sidebar.is-open {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* The dark overlay for the background */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1005;
+    opacity: 0;
+    pointer-events: none; /* Can't be clicked by default */
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* The "Open" State for the overlay */
+.sidebar-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto; /* Becomes clickable to close the menu */
+}
+
+
+/* Styling for the menu items */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu a, .sidebar-logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    width: 100%;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: inherit;
+    text-align: left;
+}
+
+.sidebar-menu a:hover, .sidebar-logout-btn:hover {
+    background-color: rgba(255, 165, 0, 0.1);
+    color: white;
+    border-left-color: #ffa500;
+}
+/* =================================================================== */
+/* --- CUSTOM LEADS DROPDOWN STYLES (Desktop & Mobile) --- */
+/* =================================================================== */
+
+/* Main container for the dropdown component */
+.custom-dropdown-container {
+    position: relative; /* Crucial for positioning the panel absolutely below it */
+    max-width: 500px;   /* Optional: give it a max width for better appearance */
+    margin: 0 auto;     /* Optional: center it within its section */
+}
+
+/* The visible, clickable part of the dropdown */
+.custom-dropdown-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none; /* Prevents text selection on click */
+}
+
+/* Add a hover effect for better user feedback */
+.custom-dropdown-trigger:hover {
+    border-color: rgba(255, 165, 0, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* The text inside the trigger (e.g., "3 leads selected") */
+#leadsDropdownLabel {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+/* The little arrow icon */
+.chevron-icon {
+    transition: transform 0.3s ease;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* The panel that appears/disappears */
+.custom-dropdown-panel {
+    position: absolute; /* Positioned relative to the .custom-dropdown-container */
+    top: calc(100% + 8px); /* Appears 8px below the trigger */
+    left: 0;
+    width: 100%;
+    background: #1a1a3a;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    overflow: hidden; /* Ensures the border-radius is respected by children */
+    
+    /* This rule hides the panel by default */
+    display: none;
+}
+
+/* --- FUNCTIONALITY STYLES (Controlled by JavaScript) --- */
+
+/* When the container has the 'is-open' class, show the panel... */
+.custom-dropdown-container.is-open .custom-dropdown-panel {
+    display: block;
+}
+
+/* ...and flip the arrow icon. */
+.custom-dropdown-container.is-open .chevron-icon {
+    transform: rotate(180deg);
+}
+
+/* --- STYLES FOR THE PANEL'S CONTENT --- */
+
+/* The header area inside the panel with the "Select All" checkbox */
+.panel-controls {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(0, 0, 0, 0.2); /* Slightly darker to distinguish it */
+}
+
+.panel-controls label {
+    font-weight: 600;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.panel-controls input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #ffa500; /* Styles the checkmark color */
+}
+
+/* The scrollable list area */
+.panel-list {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+/* A single lead item in the list */
+.lead-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.lead-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.lead-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 1rem;
+    flex-shrink: 0; /* Prevents the checkbox from shrinking */
+    cursor: pointer;
+    accent-color: #ffa500;
+}
+
+.lead-item label {
+    cursor: pointer;
+    flex-grow: 1; /* Allows the label to take up remaining space */
+}
+
+.lead-name { 
+    font-weight: 600; 
+    color: white;
+    line-height: 1.3;
+}
+.lead-details { 
+    font-size: 0.85rem; 
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.3;
+}
+
+/* Ensure the "hidden" class from your utility styles is available */
+/* It's used for the loader and no-leads message templates */
+
+/* By default, HIDE the display view and SHOW the edit form */
+#senderDisplayView {
+    display: none;
+}
+#senderEditView {
+    display: block; /* Ensures the form is visible by default */
+}
+
+/* When the section is saved, REVERSE the visibility */
+.sender-info-section.is-saved #senderDisplayView {
+    display: block;
+}
+.sender-info-section.is-saved #senderEditView {
+    display: none;
+}
+
+/* Control the Edit button visibility */
+#editSenderBtn {
+    display: none; /* Hidden by default */
+}
+.sender-info-section.is-saved #editSenderBtn {
+    display: inline-block; /* Show Edit button only when saved */
+}
+
+/* Header container for title and edit button */
+.sender-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.sender-header-controls h3 {
+    margin-bottom: 0;
+}
+
+/* Style for the Edit button */
+.btn-edit-sender {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.35rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-edit-sender:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Style for the Save button */
+.btn-save-sender {
+    background: linear-gradient(135deg, #ff4500, #ffa500);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: block;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    transition: all 0.2s ease;
+}
+.btn-save-sender:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3);
+}
+
+/* Styles for the display view text */
+#senderDisplayView p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+#senderDisplayView p strong {
+    color: #ffa500;
+    font-weight: 600;
+}
+#senderDisplayView span {
+    color: white;
+}
+    /* Add this CSS snippet inside your <style> tag */
+
+/* Styles for the "Browse Templates" button and its container */
+.form-label-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.form-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+.browse-templates-btn {
+    background: rgba(255, 165, 0, 0.15);
+    border: 1px solid rgba(255, 165, 0, 0.3);
+    color: rgba(255, 165, 0, 0.9);
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.browse-templates-btn:hover {
+    background: rgba(255, 165, 0, 0.25);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Styles for the Modal Overlay and Content */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1050; /* High z-index to be on top */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.modal-content {
+    background: #1a1a3a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+.modal-overlay.show .modal-content {
+    transform: scale(1);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+}
+.modal-header h2 { color: white; }
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+}
+.modal-body {
+    overflow-y: auto; /* Allow scrolling if content is too long */
+    flex-grow: 1;
+}
+
+/* Styles for the Template Categories and Cards */
+.template-categories {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.category-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.category-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+.category-btn.active {
+    background: linear-gradient(135deg, #ff4500, #ffa500);
+    color: white;
+    border-color: transparent;
+}
+.templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+.template-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.template-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 165, 0, 0.5);
+}
+.template-card h4 {
+    color: #ffa500;
+    margin-bottom: 0.5rem;
+}
+.template-card p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+}
+    /* --- REMOVED PROBLEMATIC STYLES --- */
+    #senderFirstName,
+    #senderPhone,
+    #senderEmail {
+        position: static; /* Let grid control layout */
+        width: 100%;
+        left: auto;
+    }
+
+    .sender-info-section {
+        background: rgba(255, 165, 0, 0.05);
+        border: 1px solid rgba(255, 165, 0, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .sender-info-section h3 {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sender-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    #senderBio {
+        margin-bottom: 0.5rem;
+    }
+
+    .sender-info-section small {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.875rem;
+    }
+
+    /* --- NEW: TOP RIGHT CONTROLS --- */
+    /* --- NEW HEADER & USER PROFILE STYLES --- */
+
+/* The main container in the top right corner */
+.header-top-right {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1002;
+}
+
+/* The small status dot next to the user's name */
+.gmail-connection-section {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .gmail-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .gmail-status-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .gmail-status-icon.connected {
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        animation: connected-pulse 2s ease-in-out infinite alternate;
+    }
+
+    .gmail-status-icon.disconnected {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes connected-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); }
+        100% { box-shadow: 0 0 20px 10px rgba(66, 133, 244, 0.1); }
+    }
+
+    .gmail-status-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .gmail-status-title {
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .gmail-status-subtitle {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        display: none; /* Hidden by default to save space */
+    }
+
+    .gmail-connect-btn {
+        padding: 0.6rem 1rem;
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .gmail-connect-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(66, 133, 244, 0.3);
+    }
+
+    .gmail-connect-btn:active {
+        transform: translateY(0);
+    }
+
+    .gmail-connect-btn.connected {
+        background: linear-gradient(135deg, #34a853, #4285f4);
+    }
+
+    .gmail-connect-btn.disconnect {
+        background: linear-gradient(135deg, #ea4335, #fbbc05);
+    }
+
+    .gmail-connect-btn .btn-shine {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transform: rotate(45deg);
+        animation: btn-shine 3s ease-in-out infinite;
+    }
+
+    @keyframes btn-shine {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    }
+
+/* A simple line to separate sections in the dropdown */
+.dropdown-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin: 0.5rem;
+}
+
+/* The container for the Gmail elements inside the dropdown */
+.dropdown-gmail-section {
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+.dropdown-gmail-section p {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.75rem;
+}
+
+/* The style for the connect/disconnect button inside the dropdown */
+.gmail-connect-btn-in-dropdown {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #4285f4, #34a853);
+}
+.gmail-connect-btn-in-dropdown.disconnect {
+    background: linear-gradient(135deg, #ea4335, #fbbc05);
+}
+.gmail-connect-btn-in-dropdown:hover {
+    transform: scale(1.03);
+}
+
+    @keyframes btn-shine {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    }
+
+    /* Updated send button for direct send */
+    .btn-send-direct {
+        background: linear-gradient(135deg, #34a853, #4285f4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-send-direct:hover {
+        box-shadow: 0 10px 20px rgba(52, 168, 83, 0.3);
+    }
+
+    .btn-send-direct:disabled {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .send-direct-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* --- ADJUSTED USER PROFILE FOR NEW LAYOUT --- */
+    .user-profile-container {
+        position: relative;
+        /* Removed top, right positioning */
+        z-index: 1001;
+        color: white;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+
+    .user-info-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        padding: 0.6rem 1rem;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+        cursor: default;
+    }
+
+    #userNameDisplay {
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1;
+    }
+
+    .dropdown-toggle {
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 0.25rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .dropdown-toggle:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: scale(1.1);
+    }
+
+    .dropdown-toggle svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    /* In index (1) (9).html, inside the <style> tag */
+/* REPLACE your old .dropdown-menu rules with this block */
+
+/* This is the base style for the dropdown menu */
+.dropdown-menu {
+    display: block; /* ADD THIS: Ensures the element takes up space */
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: rgba(30, 30, 55, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    padding: 0.5rem;
+    min-width: 160px;
+    z-index: 1000;
+    
+    /* These styles hide it with a transition */
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* This is the "show" state: when it does NOT have the .hidden class */
+.dropdown-menu:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* This is the "hide" state: a simple rule to force it to be gone */
+.dropdown-menu.hidden {
+    display: none;
+}
+
+    .dropdown-item4 {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: transparent; /* Changed from red */
+        border: none;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+
+    .dropdown-item4:hover {
+        background-color: rgba(234, 67, 53, 0.25); /* Red accent on hover */
+        
+        color: white;
+    }
+
+    .user-profile-container.hidden {
+        display: none !important;
+    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #2d1b69 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            color: white;
+        }
+
+        .particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            margin-top: 1rem; /* Add space for top-right controls */
+        }
+
+        .red-flame-logo {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            cursor: pointer;
+        }
+
+        .red-flame-logo-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 69, 0, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-main {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff4500 0%, #ff6347 30%, #ffa500 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 1.5s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-inner-orange-red {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 60px;
+            background: linear-gradient(45deg, #ff6347 0%, #ffa500 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 1.8s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-core-orange {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25px;
+            height: 40px;
+            background: linear-gradient(45deg, #ffa500 0%, #ffff00 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 2.2s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-inner-yellow-orange {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 15px;
+            height: 25px;
+            background: linear-gradient(45deg, #ffff00 0%, #ffffff 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 2.5s ease-in-out infinite alternate;
+        }
+
+        .red-flame-logo-center-hotspot {
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ffffff;
+            animation: hotspot-pulse 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.6; }
+        }
+
+        @keyframes flicker {
+            0% { transform: translate(-50%, -50%) scale(1) rotate(-2deg); }
+            100% { transform: translate(-50%, -50%) scale(1.05) rotate(2deg); }
+        }
+
+        @keyframes hotspot-pulse {
+            0% { box-shadow: 0 0 5px #ffffff; }
+            100% { box-shadow: 0 0 15px #ffffff, 0 0 25px #ffff00; }
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #ffa500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: rgba(255, 165, 0, 0.9);
+            margin-bottom: 0.75rem;
+        }
+
+        .description {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, #ff4500, #ffa500);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover:not(.active) {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* STEP 2: Make sure these CSS rules exist and are correct. */
+
+/* This rule hides all input sections by default */
+.input-section {
+    display: none;
+}
+
+/* This rule SHOWS the section that has the 'active' class */
+.input-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease; /* Optional: adds a nice fade-in effect */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* This styles the active toggle button */
+.toggle-btn.active {
+    background: linear-gradient(135deg, #ff4500, #ffa500);
+    color: white;
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(255, 69, 0, 0.2);
+}
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: rgba(255, 165, 0, 0.5);
+            box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-input[type="file"] {
+            cursor: pointer;
+        }
+
+        .form-input[type="file"]::-webkit-file-upload-button {
+            background: rgba(255, 165, 0, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .form-input[type="file"]::-webkit-file-upload-button:hover {
+            background: rgba(255, 165, 0, 0.3);
+        }
+
+        .manual-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .manual-form .form-input {
+            margin-bottom: 0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .generate-btn {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin: 2rem auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #ff4500 0%, #ffa500 100%);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 69, 0, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .generate-btn-shine {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            animation: shine 2s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        }
+
+        .email-preview-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .email-preview {
+            width: 100%;
+            min-height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-preview:focus {
+            outline: none;
+            border-color: rgba(255, 165, 0, 0.3);
+        }
+
+        .email-preview::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem; /* Added margin top */
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .navigation {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 165, 0, 0.2);
+            transform: scale(1.05);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .email-counter {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .dot-indicator {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background: #ffa500;
+            transform: scale(1.2);
+        }
+
+        .processing-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.5rem;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            gap: 1rem;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffa500;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message-box {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 300px;
+        }
+
+        .message-box.show {
+            transform: translateX(0);
+        }
+
+        .success-message {
+            background: rgba(76, 175, 80, 0.9);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.9);
+            border-left: 4px solid #f44336;
+        }
+
+        .utility.hidden {
+            display: none;
+        }
+
+        .space-y-3 > * + * {
+            margin-top: 0.75rem;
+        }
+
+        .space-y-5 > * + * {
+            margin-top: 1.25rem;
+        }
+
+        .recipient-info {
+            color: rgba(255, 165, 0, 0.9);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1rem;
+            padding: 0.5rem;
+            background: rgba(255, 165, 0, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #ffa500;
+        }
+
+        /* --- RESPONSIVE DESIGN ENHANCEMENTS --- */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            
+            .toggle-container {
+    flex-direction: column; /* This is the key change: stacks items vertically */
+    gap: 0.5rem;            /* Adds a nice, clean space between the stacked buttons */
+}
+            .toggle-btn {
+    padding: 0.85rem 1rem; /* Adjusts padding for a better vertical rhythm */
+}
+
+            .header-top-right {
+                position: relative;
+                top: 0;
+                right: 0;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .gmail-connection-section {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            .gmail-status-subtitle {
+                display: block; /* Show subtitle again on stacked view */
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .sender-form, .manual-form {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                margin-bottom: 0.5rem;
+            }
+
+            .message-box {
+                top: 1rem;
+                right: 1rem;
+                left: 1rem;
+                width: auto;
+                transform: translateY(-200%);
+            }
+            .message-box.show {
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.mjs"></script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+<script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+</head>
+<body>
+    <!-- START: Sidebar and Hamburger Menu -->
+<!-- START: NEW Simplified Sidebar and Hamburger -->
+<button id="hamburgerBtn" class="hamburger-btn">
+    <svg viewBox="0 0 100 80" width="24" height="24">
+        <rect width="100" height="12" rx="8"></rect>
+        <rect y="30" width="100" height="12" rx="8"></rect>
+        <rect y="60" width="100" height="12" rx="8"></rect>
+    </svg>
+</button>
+
+<nav id="sidebar" class="sidebar">
+    <ul class="sidebar-menu">
+        <li>
+            <a href="">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <span>Home</span>
+            </a>
+        </li>
+        <li>
+            <a href="./dashboard.html">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Leads</span>
+            </a>
+        </li>
+        <li>
+            <button id="logoutButton" class="sidebar-logout-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span>Log out</span>
+            </button>
+        </li>
+    </ul>
+</nav>
+
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
+<!-- END: NEW Simplified Sidebar and Hamburger -->
+<!-- END: Sidebar and Hamburger Menu -->
+    <div class="particle-container" id="particleContainer"></div>
+
+    <div class="container">
+        <div class="header-top-right">
+            <!-- START: New Consolidated User Profile -->
+<div id="userProfileContainer" class="user-profile-container hidden">
+    <div class="user-info-display" id="userInfoDisplay">
+        <div id="gmailStatusDot" class="gmail-status-dot disconnected"></div>
+        <span id="userNameDisplay">Your Name</span>
+        <button id="userDropdownToggle" class="dropdown-toggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+    </div>
+    <div id="userDropdownMenu" class="dropdown-menu hidden">
+        <!-- Gmail Section inside the Dropdown -->
+        <div class="dropdown-gmail-section">
+            <p id="gmailDropdownStatusText">Gmail Not Connected</p>
+            <button id="gmailDropdownConnectBtn" class="gmail-connect-btn-in-dropdown">
+                <span>Connect Gmail</span>
+            </button>
+        </div>
+
+        <div class="dropdown-divider"></div>
+        
+        <!-- Logout Button -->
+        <button id="logoutButton" class="dropdown-item4">Logout</button>
+    </div>
+</div>
+
+
+<div id="gmailConnectionSection" class="gmail-connection-section ">
+                <div class="gmail-status">
+                    <div class="gmail-status-icon disconnected" id="gmailStatusIcon">
+                        📧
+                    </div>
+                    <div class="gmail-status-text">
+                        <div class="gmail-status-title" id="gmailStatusTitle">Gmail Not Connected</div>
+                        <div class="gmail-status-subtitle" id="gmailStatusSubtitle">Connect to send directly</div>
+                    </div>
+                </div>
+                <button class="gmail-connect-btn" id="gmailConnectBtn" onclick="toggleGmailConnection()" disabled>
+    <div class="loading-spinner" style="width: 16px; height: 16px; margin: 0; border-width: 2px; display: inline-block;"></div>
+    <span style="margin-left: 0.5rem;">Loading API...</span>
+                </button>
+            </div>
+<!-- END: New Consolidated User Profile -->
+        </div>
+
+        <div class="header">
+            <div class="red-flame-logo">
+                <div class="red-flame-logo-glow"></div>
+                <div class="red-flame-logo-main"></div>
+                <div class="red-flame-logo-inner-orange-red"></div>
+                <div class="red-flame-logo-core-orange"></div>
+                <div class="red-flame-logo-inner-yellow-orange"></div>
+                <div class="red-flame-logo-center-hotspot"></div>
+            </div>
+            
+            <h1>IgniteInbox</h1>
+            
+            <div class="space-y-3">
+                <p class="tagline">Your AI-Powered Outreach Engine</p>
+                <p class="description">Transform your cold outreach with Advanced AI</p>
+            </div>
+        </div>
+
+        <div class="card" id="inputCard">
+            <div class="card-header">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">Setup Your Campaign</div>
+            </div>
+            
+            <div class="toggle-container">
+                <button class="toggle-btn active" id="csvToggle" onclick="toggleInputMode('csv')">
+                    Upload CSV File
+                </button>
+                <button class="toggle-btn" id="manualToggle" onclick="toggleInputMode('manual')">
+                    Enter Single Recipient
+                </button>
+                
+                <button class="toggle-btn" id="leadsToggle" onclick="toggleInputMode('leads')">
+        Use My Leads
+    </button>
+            </div>
+            <div class="sender-info-section" id="senderInfoSection">
+    <!-- Header remains the same -->
+    <div class="sender-header-controls">
+        <h3><span>👤</span> Sender Information</h3>
+        <!-- The Edit button will live here in the display view -->
+        <button class="btn-edit-sender hidden" id="editSenderBtn">Edit</button>
+    </div>
+
+    <!-- 1. EDIT VIEW (The Form) -->
+    <div id="senderEditView">
+        <div class="sender-form">
+            <input type="text" id="senderFirstName" placeholder="Your First Name *" class="form-input" required>
+            <input type="text" id="senderLastName" placeholder="Your Last Name *" class="form-input" required>
+            <input type="text" id="senderCompany" placeholder="Your Company *" class="form-input" required>
+            <input type="text" id="senderRole" placeholder="Your Role/Title *" class="form-input" required>
+            <input type="email" id="senderEmail" placeholder="Your Email Address *" class="form-input full-width" required>
+            <input type="tel" id="senderPhone" placeholder="Your Phone (optional)" class="form-input full-width">
+        </div>
+        <textarea id="senderBio" rows="2" placeholder="Brief professional background (optional)" class="form-input"></textarea>
+        <small>* Required fields. This information will be used to personalize your outreach emails.</small>
+        <button class="btn-save-sender" id="saveSenderBtn">Save Information</button>
+    </div>
+
+    <!-- 2. DISPLAY VIEW (The Saved Data) -->
+    <div id="senderDisplayView">
+        <p><strong>Name:</strong> <span id="displaySenderName"></span></p>
+        <p><strong>Title:</strong> <span id="displaySenderTitle"></span></p>
+        <p><strong>Email:</strong> <span id="displaySenderEmail"></span></p>
+    </div>
+</div>
+
+            <div class="input-section active" id="csvSection">
+                <div>
+                    <label for="csvFileInput" style="display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.8); font-weight: 600;">Upload Prospects CSV:</label>
+                    <input type="file" id="csvFileInput" accept=".csv" class="form-input">
+                           <small style="color: rgba(255,255,255,0.6); font-size: 0.875rem;">Required columns: 'FirstName', 'LastName', 'Company', 'Role'. 'Email' is optional for direct sending.</small>
+                </div>
+            </div>
+
+            <div class="input-section" id="manualSection">
+                <div class="manual-form">
+                    <input type="text" id="firstName" placeholder="First Name *" class="form-input" required>
+                    <input type="text" id="lastName" placeholder="Last Name *" class="form-input" required>
+                    <input type="text" id="company" placeholder="Company *" class="form-input" required>
+                    <input type="text" id="role" placeholder="Role/Position *" class="form-input" required>
+                    <input type="email" id="email" placeholder="Email Address (optional)" class="form-input full-width">
+                </div>
+                <small style="color: rgba(255,255,255,0.6); font-size: 0.875rem;">* Required fields. Email is optional for preview mode.</small>
+            </div>
+            
+            <!-- In index (1) (9).html, after the manualSection div -->
+
+<!-- NEW SECTION FOR SELECTING LEADS FROM DASHBOARD -->
+<!-- In index (1) (9).html, REPLACE the old #leadsSection with this -->
+
+<!-- In index (1) (9).html, REPLACE the entire old #leadsSection with this block -->
+
+<div class="input-section" id="leadsSection">
+    
+    <!-- 
+      Container ID: "leadsDropdownContainer"
+      This is the main container. The JS adds/removes the "is-open" class to this element.
+    -->
+    <div id="leadsDropdownContainer" class="custom-dropdown-container">
+        
+        <!-- 
+          Trigger ID: "leadsDropdownTrigger"
+          This is the clickable area. The JS attaches a 'click' listener to this element.
+        -->
+        <div id="leadsDropdownTrigger" class="custom-dropdown-trigger">
+            <!-- Label ID: "leadsDropdownLabel" -->
+            <span id="leadsDropdownLabel">Select from your leads...</span>
+            <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+
+        <!-- 
+          Panel ID: "leadsDropdownPanel"
+          This is the panel that shows/hides. It no longer needs the "hidden" class.
+        -->
+        <div id="leadsDropdownPanel" class="custom-dropdown-panel">
+            <div class="theGambler">
+            <div class="panel-controls">
+                <!-- "Select All" Checkbox ID: "selectAllLeads" -->
+                <input type="checkbox" id="selectAllLeads">
+                <label for="selectAllLeads">Select All</label>
+            </div>
+            
+            <!-- 
+              List Container ID: "leadsListContainer"
+              The JS injects the list of leads and the loader into this element.
+            -->
+            <div id="leadsListContainer" class="panel-list">
+                <!-- Loader ID: "leadsLoader" (This will be cloned by JS, so it's a template) -->
+                <div id="leadsLoader" class="loading-spinner hidden"></div>
+                
+                <!-- "No Leads" Message ID: "noLeadsMessage" (This is a template) -->
+                <p id="noLeadsMessage" class="hidden" style="text-align: center; color: rgba(255,255,255,0.6); padding: 2rem;">
+                    No leads found in your dashboard.
+                </p>
+            </div>
+        </div>
+        </div>
+    </div>
+
+</div>
+
+            <!-- Replace with this -->
+<div style="margin-top: 1.5rem;">
+    <div class="form-label-container">
+        <label for="emailPurpose" class="form-label">Email Purpose / Goal:</label>
+        <button id="browseTemplatesBtn" class="browse-templates-btn">✨ Browse Templates</button>
+    </div>
+    <textarea id="emailPurpose" rows="4" placeholder="Clearly describe your goal. Or, select a template to start!" class="form-input"></textarea>
+</div>
+            <div style="margin-top: 1.5rem;">
+                <label for="emailLanguage" style="display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.8); font-weight: 600;">Generation Language:</label>
+                <select id="emailLanguage" class="form-input">
+                    <option value="English" selected>English</option>
+                    <option value="Spanish">Español (Spanish)</option>
+                    <option value="French">Français (French)</option>
+                    <option value="German">Deutsch (German)</option>
+                    <option value="Portuguese">Português (Portuguese)</option>
+                    <option value="Italian">Italiano (Italian)</option>
+                    <option value="Dutch">Nederlands (Dutch)</option>
+                </select>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" >
+                <div class="generate-btn-shine"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.75-.75 1.39-1.68 1.61-2.85A10.87 10.87 0 0 0 7.5 7.5c-2.43 2.07-3.64 5.31-2.91 9z"/>
+                    <path d="M14 5c0-1.5 1-2 1-2s.5-1 2-1 2 1 2 1v2l-1 1h-2L14 5Z"/>
+                    <path d="M10 15V9l-4-4h4l1 1v4l-4 4h-4Z"/>
+                    <path d="M8 17L5 20"/>
+                    <path d="M13 18l-1 1"/>
+                    <path d="M16 13l1-1"/>
+                    <path d="M19 10l-1-1"/>
+                </svg>
+                <span>Generate Email</span>
+            </button>
+            
+            <div class="processing-section" id="processingStatus" style="display: none;">
+                <span id="processingText">Generating email...</span>
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="card hidden" id="emailSliderCard">
+            <div class="card-header">
+                <div class="card-icon">📧</div>
+                <div class="card-title">Email Preview & Edit</div>
+            </div>
+            
+            <textarea id="emailPreview" class="email-preview" placeholder="Your generated email will appear here..."></textarea>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="copyEmail()" id="copyBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Copy Email
+                </button>
+                <button class="btn btn-secondary btn-send-direct" onclick="sendEmail()" id="sendBtn" disabled>
+                    <div class="send-direct-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+                        </svg>
+                        <span>Send Direct</span>
+                    </div>
+                    
+                </button>
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prevBtn" onclick="prevEmail()">‹</button>
+                <div class="email-counter">
+                    <span id="counter">0 / 0</span>
+                    <div class="dot-indicator" id="dotIndicator"></div>
+                </div>
+                <button class="nav-btn" id="nextBtn" onclick="nextEmail()">›</button>
+            </div>
+        </div>
+    </div>
+    <!-- Add this code right after the main container div -->
+
+<!-- NEW: Template Modal HTML -->
+<div class="modal-overlay hidden" id="templateModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Choose a Template</h2>
+            <button class="modal-close-btn" id="modalCloseBtn">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="template-categories" id="templateCategoriesContainer">
+                <!-- Category buttons will be inserted here by JavaScript -->
+            </div>
+            <div class="templates-grid" id="templatesGridContainer">
+                <!-- Template cards will be inserted here by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ADD THIS NEW HELP MODAL HTML -->
+<div class="modal-overlay hidden" id="helpModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>User Guide</h2>
+            <button class="modal-close-btn" id="helpModalCloseBtn">×</button>
+        </div>
+        <div class="modal-body help-modal-body">
+            <h3>How to Connect Gmail:</h3>
+            <p>
+                1. Scroll to the top of the screen and look for an arrow icon <br /><br />
+2. Click the arrow - this will reveal the "Connect Gmail" option <br /><br />
+3. Click "Connect Gmail" <br /><br />
+4. You'll be prompted to select from your Google accounts - choose the account you want to connect <br /><br />
+5. Google will show you a warning about the permissions this tool will have. These permissions are limited by Google to ensure a secure connection and prevent spammy email sending apps that could hurt Google's reputation or enable misuse <br /><br />
+6. Click "Advanced" in the warning dialog <br /><br />
+7. Click "Continue to site" <br /><br />
+8. You're now connected and ready to use the email generator with your Gmail account
+            </p>
+            <p>
+                These steps will safely connect your Gmail account while maintaining Google's security protections.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- (Your message boxes and script tags are here) -->
+
+    <div id="successMessage" class="message-box success-message"></div>
+    <div id="errorMessage" class="message-box error-message"></div>
+    <script src="fireapp.js" type="module"></script>
+<script>
+
+// --- START OF NEW TEMPLATE SCRIPT ---
+
+
+const emailTemplates = [
+    // --- Sales Outreach ---
+    { id: 'sales-co-1', category: 'Sales Outreach', title: 'Classic Intro & Demo', description: 'Introduce your product and ask for a brief demo call.', purposeText: 'Introduce our product, [Your Product/Service Name], which helps companies in the [Prospect\'s Industry] to solve [Common Pain Point]. The goal is to highlight the key benefit of [Benefit 1] and secure a 15-minute introductory call to demonstrate its value.' },
+    { id: 'sales-co-2', category: 'Sales Outreach', title: 'Value-First Resource', description: 'Provide immediate value by sharing a helpful resource or insight.', purposeText: 'Start by offering a valuable resource (like a blog post, whitepaper, or tool) that is relevant to the prospect\'s role. The goal is to provide value upfront, establish credibility, and then gently pivot to a conversation about how our solution, [Your Product/Service Name], can help them further.' },
+    { id: 'sales-co-3', category: 'Sales Outreach', title: 'Pain Point Focus', description: 'Directly address a specific, researched pain point their company may have.', purposeText: 'Based on my research of [Prospect\'s Company], I believe you might be facing challenges with [Specific, Researched Pain Point]. My goal is to show I\'ve done my homework and explain concisely how [Your Product/Service Name] is designed to alleviate this exact issue.' },
+    { id: 'sales-co-4', category: 'Sales Outreach', title: 'Competitor Mention', description: 'Position your solution against a known competitor they might be using.', purposeText: 'Acknowledge that many companies in their space use [Competitor Name]. The goal is to introduce our solution, [Your Product/Service Name], as a compelling alternative, highlighting our key differentiator which is [Unique Differentiator], and ask if they are open to seeing a quick comparison.' },
+    { id: 'sales-co-5', category: 'Sales Outreach', title: 'Trigger Event (e.g., Funding)', description: 'Reference a recent company event like a funding round or new hire.', purposeText: 'Congratulate the prospect on their recent [Trigger Event, e.g., funding round, award, major hire]. The goal is to connect this event to a new challenge they might face (e.g., scaling operations) and position [Your Product/Service Name] as the perfect solution to support their growth.' },
+    { id: 'sales-co-6', category: 'Sales Outreach', title: 'Question-Based Hook', description: 'Start with a thought-provoking question related to their role or industry.', purposeText: 'Open the email with a compelling question related to their role, such as "What\'s your current strategy for handling [Challenge]?" The goal is to pique their curiosity and then introduce [Your Product/Service Name] as a potential answer to that question.' },
+    { id: 'sales-co-7', category: 'Sales Outreach', title: 'Warm Lead (Referral)', description: 'Reach out to a prospect who was referred by a mutual connection.', purposeText: 'State immediately that our mutual connection, [Referrer\'s Name], suggested I get in touch. Mention why the referral was made (e.g., they thought we could help with [Problem]). The goal is to leverage the trust from the referral to secure a meeting.' },
+    { id: 'sales-co-8', category: 'Sales Outreach', title: 'Video Pitch Embed', description: 'Mention a short, personalized video you made for them.', purposeText: 'Explain that I have recorded a brief, personalized video (under 60 seconds) specifically for them to demonstrate how [Your Product/Service Name] can impact [Prospect\'s Company]. The goal is to drive them to watch the video and respond to a clear call-to-action within the email.' },
+
+    // --- Follow-up ---
+    { id: 'follow-up-1', category: 'Follow-up', title: 'Simple Bump (No Reply)', description: 'A gentle and brief nudge after no response to your first email.', purposeText: 'Gently "bump" my previous email to the top of their inbox. The goal is to ask if they had a chance to consider my earlier message about [Original Topic] and to keep the conversation alive without being pushy.' },
+    { id: 'follow-up-2', category: 'Follow-up', title: 'Post-Meeting Summary', description: 'Summarize a recent meeting and confirm the next steps.', purposeText: 'Follow up on our conversation from [Date]. The goal is to briefly recap the key points we discussed, particularly [Key Takeaway], and clearly outline the agreed-upon next step, which is [Agreed Next Step].' },
+    { id: 'follow-up-3', category: 'Follow-up', title: 'Value-Add (No Reply)', description: 'Follow up by providing a new piece of valuable information.', purposeText: 'Follow up on my previous email by sharing a new, relevant piece of content (like a case study, article, or quick tip) related to [Original Topic]. The goal is to offer more value and re-engage them in a helpful way.' },
+    { id: 'follow-up-4', category: 'Follow-up', title: 'Post-Demo Feedback', description: 'Follow up after a product demo to get feedback and move forward.', purposeText: 'Thank the prospect for their time during our recent demo of [Your Product/Service Name]. The goal is to ask for their initial thoughts or any outstanding questions and to propose the next logical step, such as a trial period or a formal proposal.' },
+    { id: 'follow-up-5', category: 'Follow-up', title: 'The "Break-up" Email', description: 'A final attempt to close the loop or get a response.', purposeText: 'Since I haven\'t heard back, I\'ll assume this is not a priority right now and I won\'t continue to follow up. The goal is to close the loop respectfully or to provoke a response from prospects who may have just been busy. End by leaving the door open for the future.' },
+    { id: 'follow-up-6', category: 'Follow-up', title: 'After Leaving a Voicemail', description: 'A quick email to reference a voicemail you just left.', purposeText: 'Briefly state that I just left a voicemail regarding [Topic of Voicemail]. The goal is to provide an easy way for them to respond (by replying to the email) and to reinforce the message from the call.' },
+
+    // --- Networking ---
+    { id: 'network-1', category: 'Networking', title: 'Connect with Industry Peer', description: 'Reach out to someone in a similar role to share insights.', purposeText: 'Reach out to a peer in the industry. Mention that I admire their work at [Their Company], specifically [Specific Project or Achievement]. The goal is to propose a brief virtual coffee chat to exchange ideas on [Industry Topic] and build a professional connection.' },
+    { id: 'network-2', category: 'Networking', title: 'Post-Event Connection', description: 'Follow up with someone you met at a conference or event.', purposeText: 'Mention that it was great meeting them at [Event Name]. Reference a specific topic we discussed, [Topic of Conversation], to jog their memory. The goal is to continue the conversation and solidify the new connection.' },
+    { id: 'network-3', category: 'Networking', title: 'Request for Advice', description: 'Humbly ask an expert for their opinion or a brief moment of their time.', purposeText: 'Acknowledge the prospect\'s expertise in [Their Field], referencing a specific article, talk, or project of theirs. The goal is to humbly ask for their brief advice on a specific challenge I\'m facing, emphasizing respect for their busy schedule.' },
+    { id: 'network-4', category: 'Networking', title: 'Requesting an Introduction', description: 'Ask a mutual connection to introduce you to someone.', purposeText: 'Ask my connection, [Recipient\'s Name], if they would be willing to introduce me to [Target Person\'s Name]. Clearly and concisely explain why I want the introduction – to discuss [Topic]. The goal is to make it as easy as possible for them to forward the request or make the intro.' },
+    { id: 'network-5', category: 'Networking', title: 'Congratulations', description: 'Congratulate a connection on a new job or promotion.', purposeText: 'Congratulate my connection on their new role as [New Role] at [New Company]! The goal is to maintain the relationship, wish them well, and perhaps ask a light question about their new position once they are settled.' },
+
+    // --- Recruiting ---
+    { id: 'recruit-1', category: 'Recruiting', title: 'Passive Candidate Outreach', description: 'Contact a promising candidate who isn\'t actively looking for a new job.', purposeText: 'Reach out to a high-potential candidate for the [Job Role] position at my company. Compliment their specific experience (e.g., their work on [Specific Project]) that makes them a great fit. The goal is to introduce the opportunity in a low-pressure way and ask if they would be open to a confidential, exploratory conversation.' },
+    { id: 'recruit-2', category: 'Recruiting', title: 'Referral Candidate', description: 'Contact a candidate who was referred by an employee or connection.', purposeText: 'Immediately mention that [Referrer\'s Name] recommended them as a top talent in [Field]. The goal is to leverage the warm introduction to express strong interest in their profile for our [Job Role] position and schedule an initial call.' },
+    { id: 'recruit-3', category: 'Recruiting', title: 'Interview Confirmation', description: 'Confirm interview details with a candidate.', purposeText: 'Confirm the details for the upcoming interview for the [Job Role] position. The goal is to clearly state the date, time, location (or video link), and who they will be meeting with, and provide any necessary materials for them to review beforehand.' },
+    { id: 'recruit-4', category: 'Recruiting', title: 'Post-Interview Follow-up', description: 'Follow up with a candidate to provide an update on the hiring process.', purposeText: 'Thank the candidate for their time interviewing for the [Job Role] position. The goal is to provide an update on the timeline for next steps and to keep them engaged and informed about the process.' },
+    { id: 'recruit-5', category: 'Recruiting', title: 'Polite Rejection', description: 'A respectful rejection email to a candidate who was not selected.', purposeText: 'Thank the candidate for their interest and time interviewing for the [Job Role]. The goal is to inform them that we have decided to move forward with another candidate, while still being respectful, professional, and encouraging them to apply for future roles.' },
+    { id: 'recruit-6', category: 'Recruiting', title: 'Job Offer', description: 'Officially extend a job offer to a successful candidate.', purposeText: 'Express excitement in formally offering the candidate the position of [Job Role] at [Your Company]. The goal is to clearly outline the key terms of the offer (salary, start date) and attach the official offer letter for their review and signature.' },
+    { id: 'recruit-7', category: 'Recruiting', title: 'Company Culture Highlight', description: 'Attract a candidate by focusing on your company\'s unique culture.', purposeText: 'Reach out to a promising candidate by highlighting a unique aspect of our company culture, such as our commitment to [Company Value] or our recent [Team Achievement]. The goal is to differentiate our company and appeal to candidates who value a positive work environment.' },
+
+    // --- Job Seeking ---
+    { id: 'job-seek-1', category: 'Job Seeking', title: 'Post-Interview Thank You', description: 'Send a thank-you note after a job interview.', purposeText: 'Thank the interviewer(s), [Interviewer Names], for their time discussing the [Job Role] position. The goal is to reiterate my strong interest in the role, briefly mention something specific I enjoyed discussing, and reaffirm why I am a great fit for the team.' },
+    { id: 'job-seek-2', category: 'Job Seeking', title: 'Cold Application', description: 'Express interest in a company without a specific job posting.', purposeText: 'Express my admiration for [Company Name] and its work in [Their Industry]. The goal is to introduce myself as a [My Profession] with expertise in [My Key Skill] and inquire about any potential or future opportunities on their team, with my resume attached for consideration.' },
+    { id: 'job-seek-3', category: 'Job Seeking', title: 'Informational Interview Request', description: 'Ask a professional for a brief chat about their career or company.', purposeText: 'Mention that I am a [My Status, e.g., student, professional] interested in [Their Industry/Company]. The goal is to ask for 15-20 minutes of their time for an informational interview to learn more about their career path and experience, emphasizing that I am seeking advice, not a job.' },
+    { id: 'job-seek-4', category: 'Job Seeking', title: 'Application Follow-up', description: 'Follow up on a job application after a week or two of silence.', purposeText: 'Gently follow up on my application for the [Job Role] position, which I submitted on [Date]. The goal is to briefly reiterate my enthusiasm for the opportunity and confirm that my application was received.' },
+    { id: 'job-seek-5', category: 'Job Seeking', title: 'Accepting a Job Offer', description: 'Formally accept a job offer you have received.', purposeText: 'Formally and enthusiastically accept the offer for the position of [Job Role]. The goal is to express my excitement to join the team, confirm the agreed-upon terms (like start date and salary), and ask about any next steps for onboarding.' },
+    { id: 'job-seek-6', category: 'Job Seeking', title: 'Withdrawing Application', description: 'Professionally withdraw your candidacy from a hiring process.', purposeText: 'Thank the hiring manager for the opportunity to interview for the [Job Role]. The goal is to respectfully withdraw my application from consideration, briefly stating that I have accepted another position, while maintaining a positive relationship with the company for the future.' },
+
+    // --- Customer Success ---
+    { id: 'cs-1', category: 'Customer Success', title: 'New Customer Welcome', description: 'Welcome a new client and introduce yourself as their point of contact.', purposeText: 'Warmly welcome the new customer, [Customer Company Name], to [Your Product/Service]. The goal is to introduce myself as their dedicated [Your Role, e.g., Customer Success Manager], provide key getting-started resources, and schedule a brief onboarding call.' },
+    { id: 'cs-2', category: 'Customer Success', title: 'Proactive Check-in', description: 'Check in with a client to see how they are doing and offer help.', purposeText: 'Proactively check in with the client to see how they are progressing with [Your Product]. The goal is to ask if they have any questions, offer a helpful tip about [Specific Feature], and ensure they are getting the full value from our service.' },
+    { id: 'cs-3', category: 'Customer Success', title: 'Feedback Request', description: 'Ask a current customer for their valuable feedback.', purposeText: 'Explain that we are constantly working to improve [Your Product]. The goal is to ask if they would be willing to share their feedback, either through a quick survey or a brief 5-minute call, to help us make the product better for them.' },
+    { id: 'cs-4', category: 'Customer Success', title: 'Renewal Reminder', description: 'Remind a client about their upcoming subscription renewal.', purposeText: 'Gently remind the client that their subscription for [Your Product] is due for renewal on [Renewal Date]. The goal is to make the renewal process smooth, ask if they have any questions, and highlight a new feature or recent success they\'ve had.'},
+    { id: 'cs-5', category: 'Customer Success', title: 'Usage Tip / Best Practice', description: 'Share a useful tip to help a customer get more value.', purposeText: 'Share a quick "pro-tip" or best practice for using [Specific Feature] of our product. The goal is to provide proactive, educational value that helps the customer achieve their goals more effectively, thereby increasing their satisfaction and stickiness.' },
+    { id: 'cs-6', category: 'Customer Success', title: 'At-Risk Client Re-engagement', description: 'Reach out to a client whose usage has dropped or who seems disengaged.', purposeText: 'Reach out to a client, noting that I want to ensure they are getting the full value from [Your Product]. The goal is to ask if they are facing any challenges, offer a personalized training session, and understand how we can better support their goals to prevent churn.' },
+    { id: 'cs-7', category: 'Customer Success', title: 'Quarterly Business Review (QBR)', description: 'Invite a key client to a strategic review meeting.', purposeText: 'Invite the client to a Quarterly Business Review (QBR). The goal is to schedule a meeting to review their progress, discuss their goals for the upcoming quarter, and align on how [Your Product] can continue to support their strategic objectives.' },
+    { id: 'cs-8', category: 'Customer Success', title: 'New Feature Announcement', description: 'Inform customers about a new feature that is relevant to them.', purposeText: 'Announce an exciting new feature, [New Feature Name], that is now live in [Your Product]. The goal is to explain how this feature can specifically help them achieve [Relevant Goal] and provide a link to a tutorial or guide.' }
+];
+
+/**
+ * Main function to set up the entire template browser system.
+ */
+function initializeTemplateBrowser() {
+    const browseBtn = document.getElementById('browseTemplatesBtn');
+    const modal = document.getElementById('templateModal');
+    const closeBtn = document.getElementById('modalCloseBtn');
+    const categoriesContainer = document.getElementById('templateCategoriesContainer');
+    const emailPurposeTextarea = document.getElementById('emailPurpose');
+
+    // --- Event Listeners to Open/Close the Modal ---
+    browseBtn.addEventListener('click', () => modal.classList.add('show'));
+    closeBtn.addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', (e) => {
+        // Close modal if user clicks on the dark overlay background
+        if (e.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
+    document.addEventListener('keydown', (e) => {
+        // Close modal if user presses the Escape key
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+            modal.classList.remove('show');
+        }
+    });
+
+    // --- Logic to create and manage the template UI ---
+    const categories = [...new Set(emailTemplates.map(t => t.category))];
+    categoriesContainer.innerHTML = ''; // Clear any existing buttons
+
+    categories.forEach((category, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'category-btn';
+        // Make the first category active by default
+        if (index === 0) {
+            btn.classList.add('active');
+        }
+        btn.textContent = category;
+        btn.dataset.category = category;
+
+        btn.addEventListener('click', () => {
+            // Remove 'active' class from the previously active button
+            categoriesContainer.querySelector('.active').classList.remove('active');
+            // Add 'active' class to the clicked button
+            btn.classList.add('active');
+            // Repopulate the grid with templates from the new category
+            populateTemplates(category);
+        });
+        categoriesContainer.appendChild(btn);
+    });
+
+    // --- Initial population of the template grid ---
+    if (categories.length > 0) {
+        populateTemplates(categories[0]);
+    }
+}
+
+/**
+ * Populates the grid with templates for a given category.
+ * @param {string} category The category to filter by.
+ */
+function populateTemplates(category) {
+    const templatesContainer = document.getElementById('templatesGridContainer');
+    const emailPurposeTextarea = document.getElementById('emailPurpose');
+    const modal = document.getElementById('templateModal');
+
+    templatesContainer.innerHTML = ''; // Clear old templates
+    const filteredTemplates = emailTemplates.filter(t => t.category === category);
+
+    filteredTemplates.forEach(template => {
+        const card = document.createElement('div');
+        card.className = 'template-card';
+        card.innerHTML = `<h4>${template.title}</h4><p>${template.description}</p>`;
+
+        // Add the main click action
+        card.addEventListener('click', () => {
+            emailPurposeTextarea.value = template.purposeText;
+            emailPurposeTextarea.focus(); // Help the user to start typing immediately
+            modal.classList.remove('show'); // Close the modal
+            showMessage('Template applied!', 'success'); // Give user feedback
+        });
+        templatesContainer.appendChild(card);
+    });
+}
+
+// --- END OF NEW TEMPLATE SCRIPT ---
+// Define the email templates in an array
+// --- REPLACE your old emailTemplates array with this new one ---
+
+
+// --- END OF NEW TEMPLATE SCRIPT ---
+const GMAIL_API_KEY = 'AIzaSyCqPOKuJI6X7Ay6fjJDY-occ8HqSIQjlhk'; // Replace with your API key
+const GMAIL_CLIENT_ID = '987431490504-feghrjp2bgo5r4e4bpped1kj9hefv7j2.apps.googleusercontent.com'; // Replace with your client ID
+const GMAIL_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest';
+const GMAIL_SCOPES = 'https://www.googleapis.com/auth/gmail.send';
+
+let tokenClient;
+let gapiInited = false;
+let gisInited = false;
+let isGmailConnected = false;
+
+function gapiLoaded() {
+    gapi.load('client', initializeGapiClient);
+}
+
+ // Add this new function
+async function initializeGapiClient() {
+    try {
+        await gapi.client.init({
+            apiKey: GMAIL_API_KEY,
+            discoveryDocs: [GMAIL_DISCOVERY_DOC],
+        });
+        gapiInited = true;
+        console.log("GAPI client initialized.");
+        checkGmailAuthReady();
+    } catch (error) {
+        console.error("Error initializing GAPI client:", error);
+        showMessage('Gmail API setup failed.', 'error');
+    }
+}
+
+
+function gisLoaded() {
+    try {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: GMAIL_CLIENT_ID,
+            scope: GMAIL_SCOPES,
+            callback: '',
+        });
+        gisInited = true;
+        console.log("Gmail GIS client initialized.");
+        checkGmailAuthReady();
+    } catch (error) {
+        console.error("Error initializing Gmail GIS client:", error);
+        showMessage('Gmail authentication setup failed', 'error');
+    }
+}
+
+function checkGmailAuthReady() {
+    if (gapiInited && gisInited) {
+        console.log('Gmail API ready for authentication');
+        const connectBtn = document.getElementById('gmailConnectBtn');
+        if (connectBtn) {
+            connectBtn.disabled = false;
+            // Restore the original button content
+            connectBtn.innerHTML = `
+                <div class="btn-shine"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <span>Connect</span>
+            `;
+        }
+    }
+}
+
+function toggleGmailConnection() {
+    const connectBtn = document.getElementById('gmailConnectBtn');
+    const statusIcon = document.getElementById('gmailStatusIcon');
+    const statusTitle = document.getElementById('gmailStatusTitle');
+    const statusSubtitle = document.getElementById('gmailStatusSubtitle');
+    
+    if (!isGmailConnected) {
+        if (!gapiInited || !gisInited) {
+            showMessage('Gmail API is still loading. Please wait a moment.', 'error');
+            return;
+        }
+        
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = `<div class="loading-spinner" style="width: 16px; height: 16px; margin:0; border-width: 2px; display: inline-block;"></div><span style="margin-left: 0.5rem;">Connecting...</span>`;
+        
+        tokenClient.callback = async (resp) => {
+            if (resp.error !== undefined) {
+                console.error('Gmail auth error:', resp);
+                showMessage('Gmail authentication failed', 'error');
+                resetConnectionButton();
+                return;
+            }
+            
+            isGmailConnected = true;
+            statusIcon.className = 'gmail-status-icon connected';
+            statusIcon.textContent = '✅';
+            statusTitle.textContent = 'Gmail Connected';
+            connectBtn.className = 'gmail-connect-btn connected disconnect';
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = `<span>Disconnect</span>`;
+            
+            updateSendButtonState();
+            showMessage('Gmail connected successfully!', 'success');
+        };
+
+        if (gapi.client.getToken() === null) {
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        } else {
+            tokenClient.requestAccessToken({ prompt: '' });
+        }
+        
+    } else {
+        handleGmailSignout();
+    }
+}
+
+function updateSendButtonState() {
+    const sendBtn = document.getElementById('sendBtn');
+    if (!sendBtn) return;
+    
+    if (generatedEmails.length > 0 && currentEmailIndex < generatedEmails.length) {
+        const currentEmail = generatedEmails[currentEmailIndex];
+        const hasEmail = currentEmail.prospect.Email && currentEmail.prospect.Email.trim() !== '';
+        const isConnected = isGmailConnected;
+        
+        sendBtn.disabled = !hasEmail || !isConnected;
+        
+        if (!isConnected) {
+            sendBtn.querySelector('span').textContent = 'Connect Gmail First';
+        } else if (!hasEmail) {
+            sendBtn.querySelector('span').textContent = 'No Email Address';
+        } else {
+            sendBtn.querySelector('span').textContent = `Send to ${currentEmail.prospect.FirstName}`;
+        }
+    }
+}
+
+function resetConnectionButton() {
+    const connectBtn = document.getElementById('gmailConnectBtn');
+    connectBtn.disabled = false;
+    connectBtn.className = 'gmail-connect-btn';
+    connectBtn.innerHTML = `
+        <div class="btn-shine"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span>Connect</span>`;
+}
+
+async function sendEmail() {
+    if (!isGmailConnected) {
+        showMessage('Please connect Gmail first', 'error');
+        return;
+    }
+    
+    const currentEmailData = generatedEmails[currentEmailIndex];
+            // --- END: NEW CODE TO WRITE STATS ---
+    if (!currentEmailData || !currentEmailData.prospect.Email) {
+        showMessage('No email address available for this prospect', 'error');
+        return;
+    }
+    
+    const sendBtn = document.getElementById('sendBtn');
+    const originalBtnHTML = sendBtn.innerHTML;
+    
+    // Read from the editable textarea
+    const fullEmailText = document.getElementById('emailPreview').value;
+
+    // Parse subject and body from the textarea
+    let subject = `A message for ${currentEmailData.prospect.Company}`;
+    let body = fullEmailText;
+    const subjectMatch = fullEmailText.match(/Subject:\s*(.*)/i);
+    if (subjectMatch && subjectMatch[1]) {
+        subject = subjectMatch[1].trim();
+        const bodyStartIndex = fullEmailText.indexOf(subjectMatch[0]) + subjectMatch[0].length;
+        body = fullEmailText.substring(bodyStartIndex).trim();
+    }
+    
+    try {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = `<div class="loading-spinner" style="width:16px; height:16px; display:inline-block; border-width:2px; margin-right:0.5rem;"></div> <span>Sending...</span>`;
+        
+        const emailLines = [
+            `From: ${currentEmailData.sender.firstName} ${currentEmailData.sender.lastName} <${currentEmailData.sender.email}>`,
+            `To: ${currentEmailData.prospect.Email}`,
+            `Subject: ${subject}`,
+            'Content-Type: text/plain; charset=utf-8',
+            '',
+            body
+        ];
+        const email = emailLines.join('\n');
+        
+        const base64EncodedEmail = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_');
+        
+        await gapi.client.gmail.users.messages.send({
+            'userId': 'me',
+            'resource': { 'raw': base64EncodedEmail }
+        });
+        
+        showMessage(`Email sent successfully to ${currentEmailData.prospect.FirstName}!`, 'success');
+        
+    } catch (error) {
+        console.error('Error sending email:', error);
+        const errorMessage = error.result?.error?.message || error.message || 'Unknown error';
+        showMessage(`Failed to send email: ${errorMessage}`, 'error');
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalBtnHTML;
+        updateSendButtonState();
+    }
+    
+}
+
+// In index (1) (9).html, inside the main <script> tag
+
+// In index (1) (9).html's main <script> tag
+
+// 1. ADD this new helper function to update the dropdown's label
+function updateLeadSelectionCounter() {
+    const dropdownLabel = document.getElementById('leadsDropdownLabel');
+    const selectedCount = document.querySelectorAll('.lead-checkbox:checked').length;
+
+    if (selectedCount === 0) {
+        dropdownLabel.textContent = 'Select from your leads...';
+    } else if (selectedCount === 1) {
+        dropdownLabel.textContent = '1 lead selected';
+    } else {
+        dropdownLabel.textContent = `${selectedCount} leads selected`;
+    }
+}
+
+// 2. REPLACE your old displayLeadsForSelection function with this new one
+// In index (1) (9).html's main <script> tag
+
+async function displayLeadsForSelection() {
+    const leadsListContainer = document.getElementById('leadsListContainer');
+    
+    // 1. Immediately clear the container and show the loader.
+    leadsListContainer.innerHTML = '<div class="loading-spinner"></div>';
+    
+    const user = window.auth.currentUser;
+    if (!user) {
+        leadsListContainer.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); padding: 2rem;">Could not find user.</p>';
+        return;
+    }
+
+    // 2. Fetch the leads
+    const userLeads = await window.fetchUserLeads(window.db, user.uid);
+
+    // 3. Clear the container again before showing results.
+    leadsListContainer.innerHTML = '';
+
+    // 4. Display either the "no leads" message or the list of leads.
+    if (userLeads.length === 0) {
+        const noLeadsMsg = document.getElementById('noLeadsMessage');
+        // We clone it so we can append it here without removing it from the DOM permanently
+        leadsListContainer.appendChild(noLeadsMsg.cloneNode(true)); 
+        leadsListContainer.querySelector('#noLeadsMessage').classList.remove('hidden');
+        return;
+    }
+
+    userLeads.forEach(lead => {
+        const leadItem = document.createElement('div');
+        leadItem.className = 'lead-item';
+        leadItem.innerHTML = `
+            <input type="checkbox" class="lead-checkbox" 
+                   data-firstname="${lead.FirstName}" 
+                   data-lastname="${lead.LastName}" 
+                   data-company="${lead.Company}"
+                   data-role="${lead.Role}"
+                   data-email="${lead.Email || ''}">
+            <label>
+                <div class="lead-name">${lead.FirstName} ${lead.LastName}</div>
+                <div class="lead-details">${lead.Role} at ${lead.Company}</div>
+            </label>
+        `;
+        leadsListContainer.appendChild(leadItem);
+    });
+}
+
+// 3. ADD all of this new setup logic inside your DOMContentLoaded event listener
+// In index (1) (9).html, inside the main <script> tag
+
+
+
+// This makes the logout button work
+
+
+function handleGmailSignout() {
+    const token = gapi.client.getToken();
+    if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token);
+        gapi.client.setToken('');
+    }
+    
+    isGmailConnected = false;
+    
+    const statusIcon = document.getElementById('gmailStatusIcon');
+    const statusTitle = document.getElementById('gmailStatusTitle');
+    statusIcon.className = 'gmail-status-icon disconnected';
+    statusIcon.textContent = '📧';
+    statusTitle.textContent = 'Gmail Not Connected';
+    
+    resetConnectionButton();
+    updateSendButtonState();
+    showMessage('Gmail disconnected', 'success');
+}
+// Global variables
+let prospects = [];
+let generatedEmails = [];
+let currentEmailIndex = 0;
+let currentInputMode = 'csv';
+let genAI = null;
+
+// Initialize Gemini AI
+async function initializeAI() {
+    try {
+        const API_KEY = 'AIzaSyAMIen9b701UekKNPVEuICV42kFZmhoUs4';
+        if (API_KEY === 'YOUR_GEMINI_API_KEY') {
+            console.warn('Please set your Gemini API key');
+            return false;
+        }
+        
+        const { GoogleGenerativeAI } = await import('https://esm.run/@google/generative-ai');
+        genAI = new GoogleGenerativeAI(API_KEY);
+        console.log('Gemini AI initialized successfully');
+        return true;
+    } catch (error) {
+        console.error('Failed to initialize AI:', error);
+        return false;
+    }
+}
+
+// Initialize particles
+function createParticles() {
+    const container = document.getElementById('particleContainer');
+    const particleCount = 50;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        container.appendChild(particle);
+    }
+}
+
+// Toggle between CSV and manual input modes
+// In index (1) (9).html, inside the main <script> tag
+
+// In index (1) (9).html's main <script> tag
+// STEP 1: Replace your toggleInputMode function with this one.
+
+function toggleInputMode(mode) {
+    // Set the global variable so other functions know the current mode.
+    currentInputMode = mode;
+
+    // --- Get all the elements we need to toggle ---
+    const csvToggleBtn = document.getElementById('csvToggle');
+    const manualToggleBtn = document.getElementById('manualToggle');
+    const leadsToggleBtn = document.getElementById('leadsToggle');
+
+    const csvSection = document.getElementById('csvSection');
+    const manualSection = document.getElementById('manualSection');
+    const leadsSection = document.getElementById('leadsSection');
+
+    // --- This is the robust logic ---
+    // It explicitly sets the 'active' class ON for the selected mode
+    // and OFF for the other two. This prevents any state conflicts.
+    
+    // Toggle Buttons
+    csvToggleBtn.classList.toggle('active', mode === 'csv');
+    manualToggleBtn.classList.toggle('active', mode === 'manual');
+    leadsToggleBtn.classList.toggle('active', mode === 'leads');
+
+    // Toggle Sections
+    csvSection.classList.toggle('active', mode === 'csv');
+    manualSection.classList.toggle('active', mode === 'manual');
+    leadsSection.classList.toggle('active', mode === 'leads');
+    
+    // Update the main "Generate" button text based on the mode.
+    const generateBtn = document.getElementById('generateBtn');
+    if (generateBtn) {
+        generateBtn.querySelector('span').textContent = mode === 'manual' ? 'Generate Email' : 'Generate Emails';
+    }
+
+    // If the user selects the "Use My Leads" mode, we should open the dropdown.
+    if (mode === 'leads') {
+        const leadsDropdownContainer = document.getElementById('leadsDropdownContainer');
+        const leadsDropdownPanel = document.getElementById('leadsDropdownPanel');
+        const theGamble = document.getElementsByClassName("theGamble");
+            // Open the dropdown and fetch the leads if it's not already open.
+            leadsDropdownPanel.addEventListener("click", () => {
+                theGamble.style.display = "block";
+            });
+        
+    }
+}
+
+// Reset form data
+function resetForm() {
+    if (currentInputMode === 'csv') {
+        const csvInput = document.getElementById('csvFileInput');
+        if (csvInput) csvInput.value = '';
+    } else {
+        const fields = ['firstName', 'lastName', 'company', 'role', 'email'];
+        fields.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.value = '';
+        });
+    }
+    
+    prospects = [];
+    generatedEmails = [];
+    hideEmailPreview();
+}
+
+// In index (1) (9).html, inside the main <script> tag
+// REPLACE your old validateInputs function with this one.
+
+function validateInputs() {
+    // --- 1. Sender Info Validation (No change here) ---
+    const requiredSenderFields = ['senderFirstName', 'senderLastName', 'senderCompany', 'senderRole', 'senderEmail'];
+    for (const fieldId of requiredSenderFields) {
+        if (!document.getElementById(fieldId).value.trim()) {
+            showMessage('Please fill in all required sender information fields.', 'error');
+            return false;
+        }
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(document.getElementById('senderEmail').value.trim())) {
+        showMessage('Please enter a valid sender email address.', 'error');
+        return false;
+    }
+    
+    if (!document.getElementById('emailPurpose').value.trim()) {
+        showMessage('Please enter the email purpose/goal.', 'error');
+        return false;
+    }
+
+    // --- 2. Prospect Validation (THIS IS THE CORRECTED LOGIC) ---
+    if (currentInputMode === 'csv') {
+        if (!document.getElementById('csvFileInput').files[0]) {
+            showMessage('Please upload a CSV file.', 'error');
+            return false;
+        }
+    } else if (currentInputMode === 'manual') {
+        const requiredManualFields = ['firstName', 'lastName', 'company', 'role'];
+        for (const fieldId of requiredManualFields) {
+            if (!document.getElementById(fieldId).value.trim()) {
+                // This is the error message you were seeing.
+                showMessage('Please fill in all required prospect fields.', 'error');
+                return false;
+            }
+        }
+    } else if (currentInputMode === 'leads') {
+        // This is the new validation logic for the 'leads' mode.
+        const selectedCount = document.querySelectorAll('.lead-checkbox:checked').length;
+        if (selectedCount === 0) {
+            showMessage('Please select at least one lead from the dropdown.', 'error');
+            return false;
+        }
+    }
+    
+    // If all checks pass for the current mode, return true.
+    return true;
+}
+
+// Handle CSV file generation
+function handleCSVGeneration() {
+    return new Promise((resolve, reject) => {
+        Papa.parse(document.getElementById('csvFileInput').files[0], {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                const parsedProspects = results.data.filter(row => 
+                    row.FirstName && row.LastName && row.Company && row.Role
+                );
+                
+                if (parsedProspects.length === 0) {
+                    showMessage('No valid prospects found in CSV. Check for required columns: FirstName, LastName, Company, Role.', 'error');
+                    reject(new Error('No valid prospects'));
+                    return;
+                }
+                resolve(parsedProspects);
+            },
+            error: (error) => reject(error)
+        });
+    });
+}
+
+// Handle manual entry
+function handleManualGeneration() {
+    const prospect = {
+        FirstName: document.getElementById('firstName').value.trim(),
+        LastName: document.getElementById('lastName').value.trim(),
+        Company: document.getElementById('company').value.trim(),
+        Role: document.getElementById('role').value.trim(),
+        Email: document.getElementById('email').value.trim() || ''
+    };
+    return [prospect];
+}
+
+// Replace the existing function with this one
+async function generateEmails(prospects, purpose, language) {
+    const emails = [];
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const senderInfo = {
+        firstName: document.getElementById('senderFirstName').value.trim(),
+        lastName: document.getElementById('senderLastName').value.trim(),
+        company: document.getElementById('senderCompany').value.trim(),
+        role: document.getElementById('senderRole').value.trim(),
+        email: document.getElementById('senderEmail').value.trim(),
+        phone: document.getElementById('senderPhone').value.trim(),
+        bio: document.getElementById('senderBio').value.trim()
+    };
+    
+    for (let i = 0; i < prospects.length; i++) {
+        const prospect = prospects[i];
+        
+        document.getElementById('processingText').textContent = 
+            `AI is working on an email for ${prospect.FirstName} (${i + 1}/${prospects.length})...`;
+        
+        // --- CHANGE 1: The prompt is now more explicit ---
+        const prompt = `
+        Write a personalized cold outreach email in ${language}.
+        SENDER: ${senderInfo.firstName} ${senderInfo.lastName}, ${senderInfo.role} at ${senderInfo.company}. Background: ${senderInfo.bio}.
+        PROSPECT: ${prospect.FirstName} ${prospect.LastName}, ${prospect.Role} at ${prospect.Company}.
+        GOAL: ${purpose}.
+        REQUIREMENTS:
+        1. Write the entire email (subject and body) in fluent, natural-sounding ${language}.
+        2. Personalize using both sender and prospect info.
+        3. Be concise (150-200 words).
+        4. Include a clear call-to-action in ${language}.
+        5. Sound professional but conversational, not overly salesy.
+        6. Create a compelling subject line in ${language}.
+        7. IMPORTANT: Do NOT include a closing or signature (e.g., "Best regards," or "Sincerely,"). The signature will be added automatically.
+        OUTPUT FORMAT (Strict):
+        Subject: [Your subject line in ${language}]
+        
+        [Email body in ${language}]
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const emailContent = response.text();
+        
+        const subjectMatch = emailContent.match(/Subject:\s*(.+)/i);
+        const subject = subjectMatch ? subjectMatch[1].trim() : `A ${language} message for ${prospect.Company}`;
+        const emailBody = emailContent.replace(/Subject:\s*.+\n*/i, '').trim();
+        
+        // --- CHANGE 2: Clean the AI's output before adding our own signature ---
+        // This regular expression removes common sign-offs and any text that follows them.
+        const signatureRegex = /(Best regards|Sincerely|Yours truly|Thanks|Cheers|Regards),?[\s\S]*/i;
+        const cleanBody = emailBody.replace(signatureRegex, '').trim();
+
+        emails.push({
+            prospect: prospect,
+            sender: senderInfo,
+            // We now use the `cleanBody` variable instead of the original `emailBody`
+            content: `${cleanBody}\n\nBest regards,\n${senderInfo.firstName} ${senderInfo.lastName}\n${senderInfo.role} at ${senderInfo.company}\n${senderInfo.email}${senderInfo.phone ? `\n${senderInfo.phone}` : ''}`,
+            subject: subject,
+            recipientInfo: `${prospect.FirstName} ${prospect.LastName} @ ${prospect.Company}`
+        });
+    }
+    return emails;
+}
+
+
+// In index (1) (9).html, inside the main <script> tag
+
+async function handleGenerateEmails() {
+    if (!validateInputs() || !genAI) {
+        if (!genAI) showMessage('AI not initialized. Please refresh.', 'error');
+        return;
+    }
+    
+    try {
+        showProcessing(true);
+        const emailPurpose = document.getElementById('emailPurpose').value.trim();
+        const language = document.getElementById('emailLanguage').value;
+        
+        let localProspects = [];
+
+        // THIS IS THE MAIN CHANGE
+        if (currentInputMode === 'csv') {
+            localProspects = await handleCSVGeneration();
+        } else if (currentInputMode === 'manual') {
+            localProspects = handleManualGeneration();
+        } else if (currentInputMode === 'leads') {
+            const selectedCheckboxes = document.querySelectorAll('.lead-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                showMessage('Please select at least one lead from your list.', 'error');
+                showProcessing(false);
+                return;
+            }
+            selectedCheckboxes.forEach(cb => {
+                localProspects.push({
+                    FirstName: cb.dataset.firstname,
+                    LastName: cb.dataset.lastname,
+                    Company: cb.dataset.company,
+                    Role: cb.dataset.role,
+                    Email: cb.dataset.email
+                });
+            });
+        }
+        // END OF MAIN CHANGE
+
+        if (localProspects && localProspects.length > 0) {
+            prospects = localProspects;
+            generatedEmails = await generateEmails(prospects, emailPurpose, language);
+            showEmailPreview();
+        } else if (currentInputMode !== 'leads') {
+             // Don't show this error if the 'leads' check already showed one
+            showMessage('No valid prospects found to process.', 'error');
+        }
+
+    } catch (error) {
+        console.error('Error during generation:', error);
+        showMessage('Failed to generate emails. Check inputs or try again.', 'error');
+    } finally {
+        showProcessing(false);
+    }
+}
+         
+
+// In index (1) (9).html, inside the main <script> tag
+// REPLACE your old showEmailPreview function with this one.
+
+function showEmailPreview() {
+    // 1. Show the main email preview card (this line is the same).
+    document.getElementById('emailSliderCard').classList.remove('hidden');
+    
+    // 2. **THIS IS THE FIX**: Find the Gmail section and remove the 'hidden' class.
+    const gmailSection = document.getElementById('gmailConnectionSection');
+    if (gmailSection) {
+        gmailSection.classList.remove('hidden');
+    }
+
+    // 3. Set up the display for the first email (this logic is the same).
+    currentEmailIndex = 0;
+    updateEmailDisplay();
+    
+    const message = `Generated ${generatedEmails.length} AI-personalized email${generatedEmails.length > 1 ? 's' : ''}!`;
+    showMessage(message, 'success');
+}
+
+/*function hideEmailPreview() {
+    document.getElementById('emailSliderCard').classList.add('hidden');
+    document.getElementById('gmailConnectionSection').classList.add('hidden');
+}
+*/
+
+function updateEmailDisplay() {
+    if (generatedEmails.length === 0) return;
+    
+    const currentEmail = generatedEmails[currentEmailIndex];
+    document.getElementById('emailPreview').value = `Subject: ${currentEmail.subject}\n\n${currentEmail.content}`;
+    
+    let recipientInfo = document.querySelector('.recipient-info');
+    if (!recipientInfo) {
+        recipientInfo = document.createElement('div');
+        recipientInfo.className = 'recipient-info';
+        const emailPreviewEl = document.getElementById('emailPreview');
+        emailPreviewEl.parentNode.insertBefore(recipientInfo, emailPreviewEl);
+    }
+    recipientInfo.textContent = `For: ${currentEmail.recipientInfo}`;
+    
+    document.getElementById('counter').textContent = `${currentEmailIndex + 1} / ${generatedEmails.length}`;
+    document.getElementById('prevBtn').disabled = currentEmailIndex === 0;
+    document.getElementById('nextBtn').disabled = currentEmailIndex === generatedEmails.length - 1;
+    
+    updateDotIndicators();
+    updateSendButtonState();
+}
+
+function updateDotIndicators() {
+    const dotIndicator = document.getElementById('dotIndicator');
+    dotIndicator.innerHTML = '';
+    const maxDots = Math.min(generatedEmails.length, 10);
+    
+    for (let i = 0; i < maxDots; i++) {
+        const dot = document.createElement('div');
+        dot.className = i === currentEmailIndex ? 'dot active' : 'dot';
+        dot.onclick = () => {
+            currentEmailIndex = i;
+            updateEmailDisplay();
+        };
+        dotIndicator.appendChild(dot);
+    }
+}
+
+function prevEmail() {
+    if (currentEmailIndex > 0) {
+        currentEmailIndex--;
+        updateEmailDisplay();
+    }
+}
+
+function nextEmail() {
+    if (currentEmailIndex < generatedEmails.length - 1) {
+        currentEmailIndex++;
+        updateEmailDisplay();
+    }
+}
+
+async function copyEmail() {
+    try {
+        await navigator.clipboard.writeText(document.getElementById('emailPreview').value);
+        showMessage('Email copied to clipboard!', 'success');
+    } catch (err) {
+        showMessage('Failed to copy email.', 'error');
+    }
+}
+
+function showProcessing(show) {
+    const processingSection = document.getElementById('processingStatus');
+    const generateBtn = document.getElementById('generateBtn');
+    
+    processingSection.style.display = show ? 'flex' : 'none';
+    processingSection.querySelector('.loading-spinner').style.display = show ? 'block' : 'none';
+    generateBtn.disabled = show;
+}
+
+function showMessage(message, type) {
+    const messageBox = document.getElementById(type === 'success' ? 'successMessage' : 'errorMessage');
+    messageBox.textContent = message;
+    messageBox.classList.add('show');
+    setTimeout(() => messageBox.classList.remove('show'), 4000);
+}
+// --- START: SENDER INFO SAVE/EDIT LOGIC ---
+/**
+ * Takes sender data and updates the UI to the display/saved mode.
+ * @param {object} senderData The object containing sender info.
+ */
+function switchToDisplayView(senderData) {
+    const section = document.getElementById('senderInfoSection');
+
+    // Update the display elements
+    document.getElementById('displaySenderName').textContent = `${senderData.firstName} ${senderData.lastName}`;
+    document.getElementById('displaySenderTitle').textContent = `${senderData.role} at ${senderData.company}`;
+    document.getElementById('displaySenderEmail').textContent = senderData.email;
+
+    // Switch to display mode
+    section.classList.add('is-saved');
+}
+/**
+ * Initializes the sender information save/edit functionality.
+ */
+function initializeSenderInfoControls() {
+    const section = document.getElementById('senderInfoSection');
+    const saveBtn = document.getElementById('saveSenderBtn');
+    const editBtn = document.getElementById('editSenderBtn');
+
+    // Attach event listeners
+    saveBtn.addEventListener('click', saveSenderInfo);
+    editBtn.addEventListener('click', editSenderInfo);
+}
+
+/**
+ * Handles the "Save" button click.
+ * Reads form data, updates the display view, and switches to display mode.
+ */
+function saveSenderInfo() {
+    // 1. Select all necessary elements
+    const section = document.getElementById('senderInfoSection');
+    const firstName = document.getElementById('senderFirstName').value.trim();
+    const lastName = document.getElementById('senderLastName').value.trim();
+    const company = document.getElementById('senderCompany').value.trim();
+    const role = document.getElementById('senderRole').value.trim();
+    const email = document.getElementById('senderEmail').value.trim();
+
+    // 2. Basic validation
+    if (!firstName || !lastName || !company || !role || !email) {
+        showMessage('Please fill in all required sender fields before saving.', 'error');
+        return;
+    }
+
+    // 3. Update the display elements with the new data
+    document.getElementById('displaySenderName').textContent = `${firstName} ${lastName}`;
+    document.getElementById('displaySenderTitle').textContent = `${role} at ${company}`;
+    document.getElementById('displaySenderEmail').textContent = email;
+
+    // 4. Switch to display mode by adding the 'is-saved' class
+    section.classList.add('is-saved');
+    showMessage('Sender information saved!', 'success');
+}
+
+/**
+ * Handles the "Edit" button click.
+ * Switches back to the form-editing mode.
+ */
+function editSenderInfo() {
+    const section = document.getElementById('senderInfoSection');
+    section.classList.remove('is-saved');
+}
+
+// --- END: SENDER INFO SAVE/EDIT LOGIC ---
+// Find this function at the very end of your script
+// In index (1) (9).html's main <script> tag
+
+// In index (1) (9).html, inside the main <script> tag
+// REPLACE your ENTIRE DOMContentLoaded listener with this one.
+
+// In index (1) (9).html, inside the main <script> tag
+// REPLACE your ENTIRE DOMContentLoaded listener with this one.
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM fully loaded. Attaching ALL event listeners...");
+
+    // --- Your existing initializers that should run on page load ---
+    createParticles();
+    await initializeAI();
+    initializeSenderInfoControls();
+    initializeTemplateBrowser();
+    
+    // Add this code INSIDE your 'DOMContentLoaded' listener
+
+// --- SIDEBAR/HAMBURGER LOGIC ---
+// Add this NEW code inside your 'DOMContentLoaded' listener
+
+// --- NEW SIDEBAR LOGIC ---
+// --- (ADD THIS NEW, IMPROVED BLOCK) ---
+document.getElementById('generateBtn').addEventListener('click', handleGenerateEmails);
+    
+    const inputsToMonitor = ['firstName', 'lastName', 'company', 'role', 'email', 'csvFileInput', 'emailPurpose'];
+    inputsToMonitor.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            const eventType = element.type === 'file' ? 'change' : 'input';
+            element.addEventListener(eventType, () => {
+                if (generatedEmails.length > 0) {
+                    hideEmailPreview();
+                    generatedEmails = [];
+                }
+            });
+        }
+    });
+    
+    // --- LEADS DROPDOWN LOGIC (Preserved from previous working state) ---
+    const leadsDropdownContainer = document.getElementById('leadsDropdownContainer');
+    const leadsDropdownTrigger = document.getElementById('leadsDropdownTrigger');
+    const leadsDropdownPanel = document.getElementById('leadsDropdownPanel');
+    const selectAllCheckbox = document.getElementById('selectAllLeads');
+    const leadsListContainer = document.getElementById('leadsListContainer');
+    
+    if (leadsDropdownTrigger) {
+        leadsDropdownTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log("Leads dropdown trigger clicked!");
+
+            const isPanelVisible = leadsDropdownPanel.style.display === 'block';
+            if (isPanelVisible) {
+                leadsDropdownPanel.style.display = 'none';
+                leadsDropdownContainer.classList.remove('is-open');
+            } else {
+                leadsDropdownPanel.style.display = 'block';
+                leadsDropdownContainer.classList.add('is-open');
+                displayLeadsForSelection(); 
+            }
+        });
+    }
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            if(leadsListContainer) {
+                leadsListContainer.querySelectorAll('.lead-checkbox').forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateLeadSelectionCounter();
+            }
+        });
+    }
+
+    if (leadsListContainer) {
+        leadsListContainer.addEventListener('change', (e) => {
+            if (e.target.classList.contains('lead-checkbox')) {
+                updateLeadSelectionCounter();
+            }
+        });
+    }
+
+    // --- USER PROFILE DROPDOWN LOGIC (This is where the fix is applied) ---
+    const userProfileContainer = document.getElementById('userProfileContainer');
+    const userDropdownToggle = document.getElementById('userDropdownToggle');
+    const userDropdownMenu = document.getElementById('userDropdownMenu');
+    const logoutButton = document.getElementById('logoutButton');
+
+    if (userDropdownToggle && userDropdownMenu) {
+        userDropdownToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isHidden = userDropdownMenu.classList.toggle('hidden');
+            const chevronIcon = userDropdownToggle.querySelector('svg');
+            if (chevronIcon) {
+                chevronIcon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
+        });
+    }
+    
+    if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+            // Assuming 'auth' is globally available from your module script
+            signOut(auth).catch(error => console.error('Sign Out Error', error));
+        });
+    }
+    
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+
+// This single function now handles everything
+function toggleSidebar() {
+    document.body.classList.toggle('sidebar-is-open');
+    sidebar.classList.toggle('is-open');
+    sidebarOverlay.classList.toggle('is-open');
+}
+
+hamburgerBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevents clicks from propagating
+    toggleSidebar();
+});
+
+sidebarOverlay.addEventListener('click', toggleSidebar);
+
+sidebarLogoutBtn.addEventListener('click', () => {
+    signOut(auth).catch(error => console.error('Sign Out Error', error));
+});
+// Close sidebar if user clicks on the dark overlay
+document.addEventListener('click', (e) => {
+    if (document.body.classList.contains('sidebar-open')) {
+        if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+            document.body.classList.remove('sidebar-open');
+        }
+    }
+});
+
+// Handle the logout button inside the sidebar
+if (sidebarLogoutBtn) {
+    sidebarLogoutBtn.addEventListener('click', () => {
+        // We reuse the same logic from the other logout button
+        // Assuming 'auth' and 'signOut' are available from your firebase module
+        signOut(auth).catch(error => console.error('Sign Out Error', error));
+    });
+}
+
+    // --- UNIVERSAL "CLICK OUTSIDE" LISTENER (Corrected Syntax) ---
+    // This new version correctly handles closing BOTH dropdowns.
+    // STEP 1: FIX THE SYNTAX ERROR
+
+// Universal "click outside to close" listener for BOTH dropdowns
+document.addEventListener('click', (e) => {
+    // This logic correctly closes the Leads Dropdown
+    const leadsDropdownContainer = document.getElementById('leadsDropdownContainer');
+    const leadsDropdownPanel = document.getElementById('leadsDropdownPanel');
+    if (leadsDropdownContainer && leadsDropdownPanel && leadsDropdownPanel.style.display === 'block') {
+        if (!leadsDropdownContainer.contains(e.target)) {
+             leadsDropdownPanel.style.display = 'none';
+             leadsDropdownContainer.classList.remove('is-open');
+        }
+    }
+
+    // This logic correctly closes the User Profile Dropdown
+    const userProfileContainer = document.getElementById('userProfileContainer');
+    const userDropdownMenu = document.getElementById('userDropdownMenu');
+    if (userProfileContainer && userDropdownMenu && !userDropdownMenu.classList.contains('hidden')) {
+        if (!userProfileContainer.contains(e.target)) {
+            userDropdownMenu.classList.add('hidden');
+        }
+    }
+    
+    
+});
+});
+
+window.toggleInputMode = toggleInputMode;
+window.prevEmail = prevEmail;
+window.nextEmail = nextEmail;
+window.copyEmail = copyEmail;
+window.sendEmail = sendEmail;
+window.toggleGmailConnection = toggleGmailConnection;
+window.initializeTemplateBrowser = initializeTemplateBrowser;
+window.gapiLoaded = gapiLoaded;
+// STEP 3: MAKE GMAIL FUNCTIONS GLOBALLY AVAILABLE
+
+</script>
+<script type="module">
+        const firebaseConfig = {
+            apiKey: "AIzaSyDmWNfHVuzEZariM7hPunt3zXeEXKSBlk0",
+            authDomain: "project01-6dc41.firebaseapp.com",
+            projectId: "project01-6dc41",
+            storageBucket: "project01-6dc41.firebasestorage.app",
+            messagingSenderId: "714586325510",
+            appId: "1:714586325510:web:8d57e4654877ff298b7987",
+            measurementId: "G-0BM2TWETQW"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+        
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { fetchUserLeads } from './fireapp.js';
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, (user) => {
+            const LOGIN_PAGE_URL = "/loginsignupsys.html";
+            const userProfileContainer = document.getElementById('userProfileContainer');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+
+            if (!user) {
+                console.log("User not authenticated. Redirecting...");
+                if (userProfileContainer) userProfileContainer.classList.add('hidden');
+                document.getElementById('userDropdownMenu')?.classList.add('hidden');
+                
+                if (!window.location.pathname.endsWith(LOGIN_PAGE_URL)) { 
+                    window.location.replace(LOGIN_PAGE_URL); 
+                }
+            } else {
+                console.log("User is signed in:", user.email);
+                if (userProfileContainer) userProfileContainer.classList.remove('hidden');
+                if (userNameDisplay) {
+                    userNameDisplay.textContent = user.displayName || user.email.split('@')[0]; 
+                }
+            }
+        });
+
+        const logoutButton = document.getElementById('logoutButton'); 
+        const userDropdownToggle = document.getElementById('userDropdownToggle');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    console.log('User signed out successfully.');
+                } catch (error) {
+                    console.error('Error signing out:', error);
+                    alert('Error signing out.');
+                }
+            });
+        }
+
+        if (userDropdownToggle && userDropdownMenu) {
+            userDropdownToggle.addEventListener('click', (event) => {
+                event.stopPropagation(); 
+                userDropdownMenu.classList.toggle('hidden');
+                const chevronIcon = userDropdownToggle.querySelector('svg');
+                if (chevronIcon) {
+                    chevronIcon.style.transform = userDropdownMenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!userDropdownMenu.contains(event.target) && !userDropdownToggle.contains(event.target)) {
+                    userDropdownMenu.classList.add('hidden');
+                    const chevronIcon = userDropdownToggle.querySelector('svg');
+                    if (chevronIcon) chevronIcon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+        window.auth = auth;
+        window.db = db;
+        window.fetchUserLeads = fetchUserLeads;
+        
+    </script>
+</body>
+</html>
