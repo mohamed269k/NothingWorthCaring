@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IgniteInbox - My Campaigns</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* =================================================================== */
+        /* --- CORE STYLES (MATCHING YOUR EXISTING APP) --- */
+        /* =================================================================== */
+        :root {
+            --brand-orange: #ff4500;
+            --brand-yellow: #ffa500;
+            --bg-dark-1: #0f0f23;
+            --bg-dark-2: #1a1a3a;
+            --bg-dark-3: #2d1b69;
+            --text-light: rgba(255, 255, 255, 0.9);
+            --text-medium: rgba(255, 255, 255, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, var(--bg-dark-1) 0%, var(--bg-dark-2) 50%, var(--bg-dark-3) 100%); min-height: 100vh; color: var(--text-light); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .header { text-align: center; margin-bottom: 2rem; margin-top: 1rem; }
+        h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 0.75rem; background: linear-gradient(135deg, #ffffff 0%, var(--brand-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .tagline { font-size: 1.2rem; font-weight: 600; color: rgba(255, 165, 0, 0.9); }
+        .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+        .card-header-title { display: flex; align-items: center; gap: 1rem; }
+        .card-icon { width: 2.5rem; height: 2.5rem; background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+        .card-title { font-size: 1.5rem; font-weight: 700; color: white; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); color: white; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; }
+        .hidden { display: none !important; }
+        .loading-spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid var(--brand-yellow); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto; }
+        @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+
+        /* --- USER PROFILE & MODAL STYLES (Copied from previous files) --- */
+        .header-top-right { position: absolute; top: 1.5rem; right: 1.5rem; z-index: 1002; } .user-profile-container { position: relative; } .user-info-display { display: flex; align-items: center; gap: .5rem; background: rgba(255,255,255,.08); backdrop-filter: blur(10px); padding: .6rem 1rem; border-radius: 30px; border: 1px solid rgba(255,255,255,.15); } #userNameDisplay { font-size: .9rem; font-weight: 600; } .dropdown-toggle { background: 0 0; border: none; padding: .25rem; cursor: pointer; color: white; } .dropdown-menu { display: none; position: absolute; top: calc(100% + 10px); right: 0; background: rgba(30,30,55,.95); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.35); padding: .5rem; min-width: 180px; z-index: 1000; } .dropdown-menu.show { display: block; } .dropdown-item { display: block; width: 100%; padding: .75rem 1rem; background: 0 0; border: none; font-size: .9rem; font-weight: 500; text-align: left; cursor: pointer; border-radius: 8px; transition: background-color .2s ease,color .2s ease; text-decoration: none; color: var(--text-light); } .dropdown-item:hover { background-color: rgba(255,255,255,.1); } .dropdown-item.logout:hover { background-color: rgba(234,67,53,.25); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.7); backdrop-filter: blur(8px); z-index: 1050; display: flex; align-items: center; justify-content: center; } .modal-content { background: var(--bg-dark-2); border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; width: 90%; max-width: 500px; } .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; } .modal-close-btn { background: 0 0; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; line-height: 1; }
+        .form-input { width: 100%; padding: .85rem 1rem; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 8px; color: #fff; font-size: 1rem; margin-bottom: 1rem; }
+
+        /* =================================================================== */
+        /* --- CAMPAIGN-SPECIFIC STYLES --- */
+        /* =================================================================== */
+
+        /* Styles for the list of campaigns */
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .campaign-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .campaign-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 165, 0, 0.4);
+        }
+        .campaign-card h3 {
+            font-size: 1.25rem;
+            color: var(--brand-yellow);
+            margin-bottom: 0.5rem;
+        }
+        .campaign-card .goal {
+            color: var(--text-medium);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+        .campaign-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-medium);
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+        .campaign-stats span { font-weight: 600; color: var(--text-light); }
+
+        /* Styles for the Campaign Detail View */
+        .back-to-campaigns {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--text-medium);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+        .back-to-campaigns:hover { color: white; }
+        
+        .leads-table { width: 100%; border-collapse: collapse; }
+        .leads-table th, .leads-table td { padding: 1rem 1.25rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .leads-table th { color: var(--brand-yellow); }
+        .leads-table td { vertical-align: middle; }
+        .lead-checkbox { width: 18px; height: 18px; accent-color: var(--brand-yellow); }
+        
+        .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-medium); border: 2px dashed var(--border-color); border-radius: 16px; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .card-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .leads-table thead { display: none; }
+            .leads-table tr { display: block; margin-bottom: 1rem; border-radius: 12px; padding: 1rem; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.15); }
+            .leads-table td { display: flex; justify-content: space-between; align-items: center; padding: .8rem .5rem; border-bottom: 1px dashed rgba(255,255,255,.1); text-align: right; }
+            .leads-table td:last-child { border-bottom: none; }
+            .leads-table td::before { content: attr(data-label); font-weight: 600; color: var(--brand-yellow); text-align: left; padding-right: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- USER PROFILE DROPDOWN (Same as other pages) -->
+        <div class="header-top-right">
+            <div id="userProfileContainer" class="hidden">
+                <div class="user-info-display">
+                    <span id="userNameDisplay"></span>
+                    <button id="userDropdownToggle" class="dropdown-toggle">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                </div>
+                <div id="userDropdownMenu" class="dropdown-menu">
+                    <a href="index (1) (9).html" class="dropdown-item">AI Generator</a>
+                    <button id="logoutButton" class="dropdown-item logout">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- This container holds BOTH the main campaigns list and the detail view -->
+        <div id="viewContainer">
+            
+            <!-- VIEW 1: CAMPAIGNS LIST (Default View) -->
+            <div id="campaignsListView">
+                <div class="header">
+                    <h1>My Campaigns</h1>
+                    <p class="tagline">Organize your outreach by goal and audience.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <div class="card-icon">📁</div>
+                            <div class="card-title">All Campaigns</div>
+                        </div>
+                        <button id="showCreateCampaignModalBtn" class="btn btn-primary">+ Create Campaign</button>
+                    </div>
+                    <div id="campaignsGridContainer" class="campaigns-grid">
+                        <!-- Campaign cards will be loaded here by JS -->
+                    </div>
+                    <div id="campaignsLoader" class="loading-spinner"></div>
+                    <div id="noCampaignsMessage" class="empty-state hidden">
+                        <h3>No campaigns yet.</h3>
+                        <p>Click "Create Campaign" to get started.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: CAMPAIGN DETAIL VIEW (Hidden by default) -->
+            <div id="campaignDetailView" class="hidden">
+                <button id="backToCampaignsBtn" class="back-to-campaigns">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    All Campaigns
+                </button>
+                <div class="header" style="margin-top: 0;">
+                    <h1 id="detailCampaignName"></h1>
+                    <p class="tagline" id="detailCampaignGoal"></p>
+                </div>
+
+                <!-- AI Generation Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <div class="card-icon">🚀</div>
+                            <div class="card-title">Generate Emails for this Campaign</div>
+                        </div>
+                    </div>
+                    <p class="tagline" style="font-size: 1rem; margin-bottom: 1.5rem;">Select leads from the list below, then click generate.</p>
+                    <button id="generateEmailsBtn" class="btn btn-primary" style="margin: 0 auto; display: block;">Generate Emails</button>
+                </div>
+                
+                <!-- Leads List Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <div class="card-icon">📇</div>
+                            <div class="card-title">Leads in this Campaign</div>
+                        </div>
+                        <!-- We can add "Add Leads" functionality here later -->
+                    </div>
+                    <div class="leads-table-container">
+                        <table class="leads-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAllLeads"></th>
+                                    <th>Name</th>
+                                    <th>Company</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leadsTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="leadsLoader" class="loading-spinner hidden"></div>
+                    <div id="noLeadsMessage" class="empty-state hidden">
+                        <h3>This campaign has no leads.</h3>
+                        <p>You can add leads via CSV or manually (feature coming soon).</p>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End View Container -->
+    </div>
+
+    <!-- MODAL for creating a new campaign -->
+    <div id="createCampaignModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Campaign</h2>
+                <button id="modalCloseBtn" class="modal-close-btn">×</button>
+            </div>
+            <form id="createCampaignForm">
+                <label for="campaignName" class="tagline" style="font-size: 1rem;">Campaign Name</label>
+                <input type="text" id="campaignName" class="form-input" placeholder="e.g., Q4 SaaS Outreach" required>
+                
+                <label for="campaignGoal" class="tagline" style="font-size: 1rem; margin-top: 1rem;">Campaign Goal</label>
+                <textarea id="campaignGoal" class="form-input" rows="4" placeholder="Describe the primary purpose of these emails..." required></textarea>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create Campaign</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Include Firebase and other scripts -->
+    <script type="module">
+        // ===================================================================
+        // --- FIREBASE & IMPORTS ---
+        // ===================================================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+        const firebaseConfig = { /* PASTE YOUR CONFIG OBJECT HERE */ };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let currentCampaign = null;
+
+        // ===================================================================
+        // --- UI & VIEW MANAGEMENT ---
+        // ===================================================================
+        const campaignsListView = document.getElementById('campaignsListView');
+        const campaignDetailView = document.getElementById('campaignDetailView');
+        
+        function showCampaignsList() {
+            campaignDetailView.classList.add('hidden');
+            campaignsListView.classList.remove('hidden');
+            currentCampaign = null;
+        }
+
+        function showCampaignDetail(campaignId, campaignData) {
+            campaignsListView.classList.add('hidden');
+            campaignDetailView.classList.remove('hidden');
+            
+            currentCampaign = { id: campaignId, ...campaignData };
+
+            document.getElementById('detailCampaignName').textContent = campaignData.name;
+            document.getElementById('detailCampaignGoal').textContent = `Goal: ${campaignData.goal}`;
+            loadLeadsForCampaign(campaignId);
+        }
+
+        // --- Modal Logic ---
+        const createCampaignModal = document.getElementById('createCampaignModal');
+        document.getElementById('showCreateCampaignModalBtn').addEventListener('click', () => createCampaignModal.classList.remove('hidden'));
+        document.getElementById('modalCloseBtn').addEventListener('click', () => createCampaignModal.classList.add('hidden'));
+
+        // ===================================================================
+        // --- DATA FETCHING & RENDERING ---
+        // ===================================================================
+        async function loadCampaigns() {
+            if (!currentUser) return;
+
+            const loader = document.getElementById('campaignsLoader');
+            const grid = document.getElementById('campaignsGridContainer');
+            const emptyMsg = document.getElementById('noCampaignsMessage');
+
+            loader.classList.remove('hidden');
+            grid.innerHTML = '';
+            emptyMsg.classList.add('hidden');
+
+            const campaignsRef = collection(db, "users", currentUser.uid, "campaigns");
+            const q = query(campaignsRef, orderBy("createdAt", "desc"));
+            const querySnapshot = await getDocs(q);
+
+            loader.classList.add('hidden');
+            
+            if (querySnapshot.empty) {
+                emptyMsg.classList.remove('hidden');
+            } else {
+                querySnapshot.forEach(doc => {
+                    const campaign = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'campaign-card';
+                    card.dataset.id = doc.id;
+                    card.innerHTML = `
+                        <h3>${campaign.name}</h3>
+                        <p class="goal">${campaign.goal}</p>
+                        <div class="campaign-stats">
+                            <div>Leads: <span>${campaign.stats?.leadsCount || 0}</span></div>
+                            <div>Reply Rate: <span>${campaign.stats?.replyRate || 0}%</span></div>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => showCampaignDetail(doc.id, campaign));
+                    grid.appendChild(card);
+                });
+            }
+        }
+
+        async function loadLeadsForCampaign(campaignId) {
+            const loader = document.getElementById('leadsLoader');
+            const tableBody = document.getElementById('leadsTableBody');
+            const emptyMsg = document.getElementById('noLeadsMessage');
+
+            loader.classList.remove('hidden');
+            tableBody.innerHTML = '';
+            emptyMsg.classList.add('hidden');
+
+            const leadsRef = collection(db, "users", currentUser.uid, "campaigns", campaignId, "leads");
+
+            const querySnapshot = await getDocs(leadsRef);
+
+            loader.classList.add('hidden');
+
+            if (querySnapshot.empty) {
+                emptyMsg.classList.remove('hidden');
+            } else {
+                querySnapshot.forEach(doc => {
+                    const lead = doc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td data-label="Select"><input type="checkbox" class="lead-checkbox" data-lead-id="${doc.id}"></td>
+                        <td data-label="Name">${lead.FirstName} ${lead.LastName}</td>
+                        <td data-label="Company">${lead.Company}</td>
+                        <td data-label="Email">${lead.Email}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        // ===================================================================
+        // --- ACTIONS & EVENT HANDLERS ---
+        // ===================================================================
+        document.getElementById('createCampaignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('campaignName').value.trim();
+            const goal = document.getElementById('campaignGoal').value.trim();
+
+            if (!name || !goal || !currentUser) return;
+            
+            const campaignsRef = collection(db, "users", currentUser.uid, "campaigns");
+            await addDoc(campaignsRef, {
+                name: name,
+                goal: goal,
+                createdAt: new Date(),
+                stats: { leadsCount: 0, replyRate: 0 }
+            });
+        createCampaignModal.classList.add('hidden');
+            e.target.reset();
+            loadCampaigns(); // Refresh the list
+        });
+
+        document.getElementById('backToCampaignsBtn').addEventListener('click', showCampaignsList);
+
+        // This is a placeholder for the email generation logic.
+        // It redirects to the main index page, passing campaign info.
+        document.getElementById('generateEmailsBtn').addEventListener('click', () => {
+            if (!currentCampaign) {
+                alert("No campaign selected.");
+                return;
+            }
+
+            const selectedLeads = [];
+            document.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
+                selectedLeads.push(cb.dataset.leadId);
+            });
+
+            if (selectedLeads.length === 0) {
+                alert("Please select at least one lead to generate emails for.");
+                return;
+            }
+
+            // For now, we'll store the info in localStorage to pass to the other page.
+            // A more advanced app might use URL params or state management.
+            localStorage.setItem('igniteinbox_campaign', JSON.stringify({
+                id: currentCampaign.id,
+                goal: currentCampaign.goal,
+                selectedLeads: selectedLeads
+            }));
+
+            // Redirect to the generator page
+            window.location.href = 'index (1) (9).html';
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('userProfileContainer').classList.remove('hidden');
+                document.getElementById('userNameDisplay').textContent = user.displayName || user.email.split('@')[0];
+                loadCampaigns();
+            } else {
+                window.location.replace('/loginsignupsys.html');
+            }
+        });
+        
+        // Dropdown Toggle Logic
+        const toggle = document.getElementById('userDropdownToggle');
+        const menu = document.getElementById('userDropdownMenu');
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+        document.addEventListener('click', () => menu.classList.remove('show'));
+        document.getElementById('logoutButton').addEventListener('click', () => signOut(auth));
+
+    </script>
+</body>
+</html>
