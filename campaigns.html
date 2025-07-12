@@ -490,6 +490,7 @@ document.getElementById('selectAllMasterLeads').addEventListener('change', funct
                 querySnapshot.forEach(doc => {
                     const lead = doc.data();
                     const row = document.createElement('tr');
+                    row.dataset.leadId = doc.id; // Add lead ID to row for proper tracking
                     row.innerHTML = `
                         <td data-label="Select"><input type="checkbox" class="lead-checkbox" data-lead-id="${doc.id}"></td>
                         <td data-label="Name">${lead.FirstName} ${lead.LastName}</td>
@@ -525,8 +526,7 @@ document.getElementById('selectAllMasterLeads').addEventListener('change', funct
 
         document.getElementById('backToCampaignsBtn').addEventListener('click', showCampaignsList);
 
-        // This is a placeholder for the email generation logic.
-        // It redirects to the main index page, passing campaign info.
+        // Updated event listener for email generation
         document.getElementById('generateEmailsBtn').addEventListener('click', () => {
             if (!currentCampaign) {
                 alert("No campaign selected.");
@@ -535,7 +535,8 @@ document.getElementById('selectAllMasterLeads').addEventListener('change', funct
 
             const selectedLeads = [];
             document.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
-                selectedLeads.push(cb.dataset.leadId);
+                // We now store the ID, not a data attribute
+                selectedLeads.push(cb.closest('tr').dataset.leadId); 
             });
 
             if (selectedLeads.length === 0) {
@@ -543,16 +544,16 @@ document.getElementById('selectAllMasterLeads').addEventListener('change', funct
                 return;
             }
 
-            // For now, we'll store the info in localStorage to pass to the other page.
-            // A more advanced app might use URL params or state management.
-            localStorage.setItem('igniteinbox_campaign', JSON.stringify({
-                id: currentCampaign.id,
-                goal: currentCampaign.goal,
-                selectedLeads: selectedLeads
+            // Store the necessary info in localStorage for the next page to pick up.
+            localStorage.setItem('igniteinbox_generation_task', JSON.stringify({
+                userId: currentUser.uid,
+                campaignId: currentCampaign.id,
+                leadIds: selectedLeads
             }));
 
-            // Redirect to the generator page
-            window.location.href = 'index (1) (9).html';
+            // --- THIS IS THE KEY CHANGE ---
+            // Redirect to the new generation.html page.
+            window.location.href = 'generation.html';
         });
 
         onAuthStateChanged(auth, (user) => {
