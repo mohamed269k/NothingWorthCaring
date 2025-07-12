@@ -9,6 +9,36 @@
         /* =================================================================== */
         /* --- CORE STYLES (MATCHING YOUR EXISTING APP) --- */
         /* =================================================================== */
+.panel-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.panel-list { /* This style is for the scrollable area */ }
+
+/* These styles are for each lead item in the modal's list */
+.lead-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+.lead-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+.lead-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 1rem;
+    cursor: pointer;
+}
+.lead-item label {
+    cursor: pointer;
+    flex-grow: 1;
+}
+.lead-name { font-weight: 600; }
+.lead-details { font-size: 0.85rem; color: var(--text-medium); }
         :root {
             --brand-orange: #ff4500;
             --brand-yellow: #ffa500;
@@ -200,9 +230,13 @@
                         <div class="card-header-title">
                             <div class="card-icon">📇</div>
                             <div class="card-title">Leads in this Campaign</div>
+                          <button id="showAddLeadsModalBtn" class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.6rem 1rem;">
+        + Add Leads from Master List
+                          </button>  
                         </div>
                         <!-- We can add "Add Leads" functionality here later -->
                     </div>
+                    
                     <div class="leads-table-container">
                         <table class="leads-table">
                             <thead>
@@ -245,7 +279,22 @@
             </form>
         </div>
     </div>
-    
+    <div id="addLeadsModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Select Leads to Add</h2>
+            <button id="addLeadsModalCloseBtn" class="modal-close-btn">×</button>
+        </div>
+        <div class="panel-controls" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+            <input type="checkbox" id="selectAllMasterLeads" style="width: 16px; height: 16px; margin-left: 1rem;">
+            <label for="selectAllMasterLeads" style="font-weight: 600;">Select All</label>
+        </div>
+        <div id="masterLeadsListContainer" class="panel-list" style="max-height: 300px; overflow-y: auto; padding: 0.5rem;">
+            <!-- Master leads list will be loaded here by JS -->
+        </div>
+        <button id="addSelectedLeadsBtn" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Add Selected Leads to Campaign</button>
+    </div>
+    </div>
     <!-- Include Firebase and other scripts -->
     <script type="module">
         // ===================================================================
@@ -253,7 +302,7 @@
         // ===================================================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDmWNfHVuzEZariM7hPunt3zXeEXKSBlk0",
@@ -277,7 +326,85 @@
         // ===================================================================
         const campaignsListView = document.getElementById('campaignsListView');
         const campaignDetailView = document.getElementById('campaignDetailView');
-        
+
+        async function populateMasterLeadsInModal() {
+    if (!currentUser) return;
+    const container = document.getElementById('masterLeadsListContainer');
+    container.innerHTML = '<div class="loading-spinner"></div>';
+
+    const masterLeadsRef = collection(db, "users", currentUser.uid, "leads");
+    const querySnapshot = await getDocs(masterLeadsRef);
+
+    container.innerHTML = ''; // Clear the loader
+
+    if (querySnapshot.empty) {
+        container.innerHTML = '<p style="text-align:center; padding: 2rem;">Your master lead list is empty.</p>';
+        return;
+    }
+
+    querySnapshot.forEach(doc => {
+        const lead = doc.data();
+        const leadItem = document.createElement('div');
+        leadItem.className = 'lead-item';
+        // We store the entire lead object as a JSON string in a data attribute
+        leadItem.innerHTML = `
+            <input type="checkbox" class="master-lead-checkbox" data-lead-data='${JSON.stringify(lead)}'>
+            <label>
+                <div class="lead-name">${lead.FirstName} ${lead.LastName}</div>
+                <div class="lead-details">${lead.Company}</div>
+            </label>
+        `;
+        container.appendChild(leadItem);
+    });
+            }
+        async function addSelectedLeadsToCampaign() {
+    if (!currentUser || !currentCampaign) return;
+
+    const selectedCheckboxes = document.querySelectorAll('.master-lead-checkbox:checked');
+    if (selectedCheckboxes.length === 0) {
+        alert("Please select at least one lead to add.");
+        return;
+    }
+
+    const batch = writeBatch(db);
+    const campaignLeadsRef = collection(db, "users", currentUser.uid, "campaigns", currentCampaign.id, "leads");
+
+    selectedCheckboxes.forEach(checkbox => {
+        const leadData = JSON.parse(checkbox.dataset.leadData);
+        const newLeadInCampaignRef = doc(campaignLeadsRef); // Create a new doc with a new ID
+        batch.set(newLeadInCampaignRef, leadData); // Copy the data over
+    });
+
+    try {
+        await batch.commit();
+        alert(`${selectedCheckboxes.length} leads added successfully!`);
+        document.getElementById('addLeadsModal').classList.add('hidden');
+        // Refresh the list of leads visible in the campaign detail view
+        loadLeadsForCampaign(currentCampaign.id);
+    } catch (error) {
+        console.error("Error adding leads to campaign: ", error);
+        alert("Could not add leads. Please try again.");
+    }
+}
+
+// --- Modal Controls ---
+const addLeadsModal = document.getElementById('addLeadsModal');
+document.getElementById('showAddLeadsModalBtn').addEventListener('click', () => {
+    addLeadsModal.classList.remove('hidden');
+    populateMasterLeadsInModal(); // Fetch the master list when the modal is opened
+});
+
+document.getElementById('addLeadsModalCloseBtn').addEventListener('click', () => addLeadsModal.classList.add('hidden'));
+
+// Wire up the final "Add" button in the modal
+document.getElementById('addSelectedLeadsBtn').addEventListener('click', addSelectedLeadsToCampaign);
+
+// "Select All" functionality for the new modal
+document.getElementById('selectAllMasterLeads').addEventListener('change', function() {
+    document.querySelectorAll('.master-lead-checkbox').forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
         function showCampaignsList() {
             campaignDetailView.classList.add('hidden');
             campaignsListView.classList.remove('hidden');
