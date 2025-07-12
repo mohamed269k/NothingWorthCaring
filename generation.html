@@ -107,8 +107,16 @@
         import { GoogleGenerativeAI } from "https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.mjs";
 
         // IMPORTANT: Paste your keys and config here
-        const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY";
-        const firebaseConfig = { /* YOUR FIREBASE CONFIG */ };
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "YOUR_GEMINI_API_KEY";
+        const firebaseConfig = {
+            apiKey: "AIzaSyDmWNfHVuzEZariM7hPunt3zXeEXKSBlk0",
+            authDomain: "project01-6dc41.firebaseapp.com",
+            projectId: "project01-6dc41",
+            storageBucket: "project01-6dc41.firebasestorage.app",
+            messagingSenderId: "714586325510",
+            appId: "1:714586325510:web:8d57e4654877ff298b7987",
+            measurementId: "G-0BM2TWETQW"
+        };
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -123,13 +131,23 @@
             const statusText = document.getElementById('generationStatusText');
             const historyContainer = document.getElementById('emailHistoryContainer');
 
-            // 1. Get the task data from localStorage
-            const taskData = JSON.parse(localStorage.getItem('igniteinbox_generation_task'));
-            if (!taskData) {
-                statusText.textContent = "Error: No generation task found.";
-                document.getElementById('spinner').classList.add('hidden');
-                return;
-            }
+            try {
+                // Check if API key is available
+                if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY") {
+                    statusText.textContent = "Error: Gemini API key not configured.";
+                    document.getElementById('spinner').classList.add('hidden');
+                    return;
+                }
+
+                // 1. Get the task data from localStorage
+                const taskData = JSON.parse(localStorage.getItem('igniteinbox_generation_task'));
+                if (!taskData) {
+                    statusText.textContent = "Error: No generation task found.";
+                    document.getElementById('spinner').classList.add('hidden');
+                    return;
+                }
+
+                console.log("Task data:", taskData); // Debug log
 
             // 2. Fetch all necessary data from Firestore
             statusText.textContent = "Fetching campaign and lead data...";
@@ -181,10 +199,15 @@
             }
 
             // 4. Finalize the process
-            statusText.textContent = "Generation Complete!";
-            document.getElementById('spinner').classList.add('hidden');
-            document.getElementById('finalMessage').classList.remove('hidden');
-            localStorage.removeItem('igniteinbox_generation_task'); // Clean up
+                statusText.textContent = "Generation Complete!";
+                document.getElementById('spinner').classList.add('hidden');
+                document.getElementById('finalMessage').classList.remove('hidden');
+                localStorage.removeItem('igniteinbox_generation_task'); // Clean up
+            } catch (error) {
+                console.error("Generation process error:", error);
+                statusText.textContent = `Error: ${error.message}`;
+                document.getElementById('spinner').classList.add('hidden');
+            }
         }
 
         /**
@@ -192,31 +215,36 @@
          * This function is similar to the one on your index page.
          */
         async function generateSingleEmail(goal, sender, prospect) {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `
-                Write a personalized cold outreach email.
-                SENDER: ${sender.firstName} ${sender.lastName}, ${sender.role} at ${sender.company}.
-                PROSPECT: ${prospect.FirstName} ${prospect.LastName}, ${prospect.Role} at ${prospect.Company}.
-                GOAL: ${goal}.
-                REQUIREMENTS:
-                1. Be concise (around 150 words).
-                2. Sound professional but conversational.
-                3. Create a compelling subject line.
-                4. IMPORTANT: Do NOT include a closing or signature (e.g., "Best regards,").
-                OUTPUT FORMAT (Strict):
-                Subject: [Your subject line]
-                
-                [Email body]
-            `;
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const emailContent = response.text();
+            try {
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const prompt = `
+                    Write a personalized cold outreach email.
+                    SENDER: ${sender.firstName} ${sender.lastName}, ${sender.role} at ${sender.company}.
+                    PROSPECT: ${prospect.FirstName} ${prospect.LastName}, ${prospect.Role} at ${prospect.Company}.
+                    GOAL: ${goal}.
+                    REQUIREMENTS:
+                    1. Be concise (around 150 words).
+                    2. Sound professional but conversational.
+                    3. Create a compelling subject line.
+                    4. IMPORTANT: Do NOT include a closing or signature (e.g., "Best regards,").
+                    OUTPUT FORMAT (Strict):
+                    Subject: [Your subject line]
+                    
+                    [Email body]
+                `;
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                const emailContent = response.text();
 
-            const subjectMatch = emailContent.match(/Subject:\s*(.+)/i);
-            const subject = subjectMatch ? subjectMatch[1].trim() : `A message for ${prospect.Company}`;
-            const body = emailContent.replace(/Subject:\s*.+\n*/i, '').trim();
+                const subjectMatch = emailContent.match(/Subject:\s*(.+)/i);
+                const subject = subjectMatch ? subjectMatch[1].trim() : `A message for ${prospect.Company}`;
+                const body = emailContent.replace(/Subject:\s*.+\n*/i, '').trim();
 
-            return { subject, body };
+                return { subject, body };
+            } catch (error) {
+                console.error("Error generating email:", error);
+                throw new Error(`Failed to generate email for ${prospect.FirstName} ${prospect.LastName}: ${error.message}`);
+            }
         }
 
         /**
