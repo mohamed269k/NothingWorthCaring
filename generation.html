@@ -103,7 +103,7 @@
         // --- IMPORTS & CONFIGURATION ---
         // ===================================================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, collection } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
         import { GoogleGenerativeAI } from "https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.mjs";
 
         // IMPORTANT: Paste your keys and config here
@@ -128,82 +128,99 @@
         
         // This is the main function that runs when the page loads
         async function startGenerationProcess() {
+            // --- Get UI Elements ---
             const statusText = document.getElementById('generationStatusText');
             const spinner = document.getElementById('spinner');
             const finalMessage = document.getElementById('finalMessage');
 
-            try {
-                // --- SETUP AND DATA FETCHING ---
-                const taskData = JSON.parse(localStorage.getItem('igniteinbox_generation_task'));
-                if (!taskData) {
-                    throw new Error("No generation task found in localStorage.");
-                }
+            // --- 1. Get and Validate Task Data ---
+            const taskDataString = localStorage.getItem('igniteinbox_generation_task');
+            if (!taskDataString) {
+                statusText.textContent = "Error: No generation task found. Please go back and try again.";
+                spinner.classList.add('hidden');
+                return;
+            }
+            const taskData = JSON.parse(taskDataString);
 
-                statusText.textContent = "Fetching campaign and lead data...";
-                const campaignRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId);
-                const campaignDoc = await getDoc(campaignRef);
-                if (!campaignDoc.exists()) throw new Error("Campaign data not found.");
+            // --- 2. Fetch Prerequisite Data (Campaign and Sender) ---
+            let campaignData, senderData;
+            try {
+                statusText.textContent = "Fetching campaign and sender data...";
                 
-                const campaignData = campaignDoc.data();
+                const campaignDoc = await getDoc(doc(db, "users", taskData.userId, "campaigns", taskData.campaignId));
+                if (!campaignDoc.exists()) throw new Error("Campaign data not found.");
+                campaignData = campaignDoc.data();
                 document.getElementById('campaignInfoText').textContent = `Campaign: ${campaignData.name}`;
 
                 const senderDoc = await getDoc(doc(db, "senderProfiles", taskData.userId));
                 if (!senderDoc.exists()) throw new Error("Sender profile not found.");
-                const senderData = senderDoc.data();
+                senderData = senderDoc.data();
 
-                // --- GENERATION LOOP ---
-                for (let i = 0; i < taskData.leadIds.length; i++) {
-                    const leadId = taskData.leadIds[i];
-                    const leadRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId, "leads", leadId);
+            } catch (error) {
+                console.error("Error during setup:", error);
+                statusText.style.color = '#f28b82';
+                statusText.textContent = `Setup Error: ${error.message}`;
+                spinner.classList.add('hidden');
+                return; // Stop execution if setup fails
+            }
+
+            // --- 3. Process Each Lead Individually ---
+            for (let i = 0; i < taskData.leadIds.length; i++) {
+                const leadId = taskData.leadIds[i];
+                const leadRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId, "leads", leadId);
+                
+                try {
                     const leadDoc = await getDoc(leadRef);
                     if (!leadDoc.exists()) {
-                        console.warn(`Skipping lead with ID ${leadId} as it was not found.`);
-                        continue;
+                        console.warn(`Skipping lead ID ${leadId} as it was not found.`);
+                        continue; // Skip to the next lead
                     }
 
                     const leadData = leadDoc.data();
-                    statusText.textContent = `Generating email for ${leadData.FirstName}... (${i + 1}/${taskData.leadIds.length})`;
+                    statusText.textContent = `Generating for ${leadData.FirstName}... (${i + 1}/${taskData.leadIds.length})`;
                     
-                    // This is where the Firestore error would happen
+                    // AI Generation
                     const { subject, body } = await generateSingleEmail(campaignData.goal, senderData, leadData);
-                    const emailData = { subject, body, type: 'outreach', recipient: { id: leadId, name: `${leadData.FirstName} ${leadData.LastName}` }, createdAt: new Date() };
-                    const newEmailRef = doc(collection(db, "users", taskData.userId, "campaigns", taskData.campaignId, "emails"));
                     
-                    // All write operations are now inside the loop's try block
+                    // Create the email data object
+                    const emailData = {
+                        subject, body, type: 'outreach',
+                        recipient: { id: leadId, name: `${leadData.FirstName} ${leadData.LastName}` },
+                        createdAt: new Date()
+                    };
+                    
+                    // --- Perform Firestore Writes for this lead ---
+                    const newEmailRef = doc(collection(db, "users", taskData.userId, "campaigns", taskData.campaignId, "emails"));
                     await setDoc(newEmailRef, emailData);
                     await updateDoc(leadRef, { status: "Contacted" });
 
+                    // If successful, update the UI immediately for this lead
                     appendEmailToHistory(emailData);
-                }
 
-                // --- SUCCESS STATE ---
-                // This code only runs if the loop completes WITHOUT errors.
-                await updateDoc(campaignRef, { "stats.leadsCount": taskData.leadIds.length });
-                
-                statusText.textContent = "Generation Complete!";
-                spinner.classList.add('hidden');
-                finalMessage.classList.remove('hidden');
-
-            } catch (error) {
-                // --- ERROR HANDLING STATE ---
-                console.error("A critical error occurred during generation:", error);
-                
-                // This is the important part: Display the real error to the user.
-                statusText.style.color = '#f28b82'; // Make the error text red
-                if (error.code === 'permission-denied') {
-                    statusText.innerHTML = `<strong>Error:</strong> Missing or insufficient permissions. <br><small>Please check your Firestore Security Rules.</small>`;
-                } else {
-                    statusText.textContent = `Error: ${error.message}`;
+                } catch (error) {
+                    // If THIS SPECIFIC LEAD fails, log it and move on.
+                    console.error(`Failed to process lead ID ${leadId}:`, error);
+                    // Optionally, display an error card for this specific lead
+                    appendErrorCardToHistory(leadId, error.message);
+                    // This 'continue' ensures we try the next lead even if one fails.
+                    continue;
                 }
-                
-                spinner.classList.add('hidden'); // Hide the spinner on error
-                // Do NOT show the "success" message.
-            
-            } finally {
-                // This runs regardless of success or error.
-                // We can clean up the task from localStorage here.
-                localStorage.removeItem('igniteinbox_generation_task');
             }
+
+            // --- 4. Finalize Process (This code only runs after the loop finishes) ---
+            try {
+                const campaignRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId);
+                await updateDoc(campaignRef, { "stats.leadsCount": taskData.leadIds.length });
+            } catch (error) {
+                console.error("Failed to update final campaign stats:", error);
+            }
+
+            statusText.textContent = "Generation Complete!";
+            spinner.classList.add('hidden');
+            finalMessage.classList.remove('hidden');
+            
+            // Clean up localStorage only after everything is truly finished.
+            localStorage.removeItem('igniteinbox_generation_task');
         }
 
         /**
@@ -259,6 +276,23 @@
                     <div class="email-subject">Subject: ${emailData.subject}</div>
                 </div>
                 <div class="email-body">${fullBody}</div>
+            `;
+            container.appendChild(card);
+        }
+
+        /**
+         * Creates and appends an error card to the history container.
+         */
+        function appendErrorCardToHistory(leadId, errorMessage) {
+            const container = document.getElementById('emailHistoryContainer');
+            const card = document.createElement('div');
+            card.className = 'email-card';
+            card.style.borderColor = '#f28b82'; // Red border for error
+            card.innerHTML = `
+                <div class="email-card-header" style="background-color: rgba(234, 67, 53, 0.1);">
+                    <div class="email-recipient" style="color: #f28b82;">Failed to generate for Lead ID: ${leadId.substring(0, 5)}...</div>
+                </div>
+                <div class="email-body"><strong>Error:</strong> ${errorMessage}</div>
             `;
             container.appendChild(card);
         }
