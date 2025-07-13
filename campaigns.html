@@ -527,34 +527,41 @@ document.getElementById('selectAllMasterLeads').addEventListener('change', funct
         document.getElementById('backToCampaignsBtn').addEventListener('click', showCampaignsList);
 
         // Updated event listener for email generation
-        document.getElementById('generateEmailsBtn').addEventListener('click', () => {
-            if (!currentCampaign) {
-                alert("No campaign selected.");
-                return;
-            }
+        // In campaigns.html, inside the <script type="module">
+// REPLACE the 'generateEmailsBtn' listener with this one.
 
-            const selectedLeads = [];
-            document.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
-                // We now store the ID, not a data attribute
-                selectedLeads.push(cb.closest('tr').dataset.leadId); 
-            });
+document.getElementById('generateEmailsBtn').addEventListener('click', () => {
+    // --- THIS IS THE FIX: Add validation checks ---
+    if (!currentUser || !currentCampaign) {
+        alert("Error: Critical data missing (user or campaign). Please refresh the page and try again.");
+        return;
+    }
 
-            if (selectedLeads.length === 0) {
-                alert("Please select at least one lead to generate emails for.");
-                return;
-            }
+    const selectedLeads = [];
+    document.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
+        // Correctly get the lead's ID from its parent table row (tr)
+        const leadRow = cb.closest('tr');
+        if (leadRow && leadRow.dataset.id) {
+            selectedLeads.push(leadRow.dataset.id);
+        }
+    });
 
-            // Store the necessary info in localStorage for the next page to pick up.
-            localStorage.setItem('igniteinbox_generation_task', JSON.stringify({
-                userId: currentUser.uid,
-                campaignId: currentCampaign.id,
-                leadIds: selectedLeads
-            }));
+    if (selectedLeads.length === 0) {
+        alert("Please select at least one lead to generate emails for.");
+        return;
+    }
 
-            // --- THIS IS THE KEY CHANGE ---
-            // Redirect to the new generation.html page.
-            window.location.href = 'generation.html';
-        });
+    // Prepare the data packet for the next page
+    const generationTask = {
+        userId: currentUser.uid,
+        campaignId: currentCampaign.id,
+        leadIds: selectedLeads
+    };
+
+    // Save the data and redirect
+    localStorage.setItem('igniteinbox_generation_task', JSON.stringify(generationTask));
+    window.location.href = 'generation.html';
+});
 
         onAuthStateChanged(auth, (user) => {
             if (user) {

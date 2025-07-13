@@ -130,56 +130,59 @@
         // In generation.html, inside the <script type="module">
 // REPLACE this entire function with the bare-bones version.
 
+// In generation.html, inside the <script type="module">
+// REPLACE this entire function.
+
 async function startGenerationProcess() {
-    // --- Get UI Elements ---
     const statusText = document.getElementById('generationStatusText');
     const spinner = document.getElementById('spinner');
-    const finalMessage = document.getElementById('finalMessage');
-
-    // --- 1. Get Task Data ---
+    
+    // --- THIS IS THE DEBUGGING SECTION ---
+    console.log("Starting generation process...");
+    
     const taskDataString = localStorage.getItem('igniteinbox_generation_task');
-    const taskData = JSON.parse(taskDataString);
+    console.log("1. Raw data string from localStorage:", taskDataString);
 
-    // --- 2. Fetch Prerequisite Data ---
+    if (!taskDataString) {
+        statusText.textContent = "Error: No task data found. Please go back to the campaigns page and try generating again.";
+        spinner.classList.add('hidden');
+        return; // Stop execution
+    }
+    
+    const taskData = JSON.parse(taskDataString);
+    console.log("2. Parsed taskData object:", taskData);
+
+    if (!taskData || !taskData.userId || !taskData.campaignId || !taskData.leadIds) {
+        statusText.textContent = "Error: Task data is incomplete or invalid.";
+        spinner.classList.add('hidden');
+        console.error("Invalid task data:", taskData);
+        return; // Stop execution
+    }
+    // --- END OF DEBUGGING SECTION ---
+
+
+    // --- Now, we continue with the rest of the function ---
     statusText.textContent = "Fetching data...";
     const campaignDoc = await getDoc(doc(db, "users", taskData.userId, "campaigns", taskData.campaignId));
+    if (!campaignDoc.exists()) {
+        statusText.textContent = "Error: Campaign could not be found in the database.";
+        spinner.classList.add('hidden');
+        return;
+    }
     const campaignData = campaignDoc.data();
     document.getElementById('campaignInfoText').textContent = `Campaign: ${campaignData.name}`;
 
     const senderDoc = await getDoc(doc(db, "senderProfiles", taskData.userId));
     const senderData = senderDoc.data();
-
-    // --- 3. The Core Loop ---
+    
+    // ... the rest of your generation loop ...
     for (let i = 0; i < taskData.leadIds.length; i++) {
-        const leadId = taskData.leadIds[i];
-        const leadRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId, "leads", leadId);
-        const leadDoc = await getDoc(leadRef);
-        const leadData = leadDoc.data();
-
-        statusText.textContent = `Generating for ${leadData.FirstName}... (${i + 1}/${taskData.leadIds.length})`;
-
-        // AI Generation Call
-        const { subject, body } = await generateSingleEmail(campaignData.goal, senderData, leadData);
-
-        // Firestore Write Operations
-        const emailData = { subject, body, type: 'outreach', recipient: { id: leadId, name: `${leadData.FirstName} ${leadData.LastName}` }, createdAt: new Date() };
-        const newEmailRef = doc(collection(db, "users", taskData.userId, "campaigns", taskData.campaignId, "emails"));
-        await setDoc(newEmailRef, emailData);
-        await updateDoc(leadRef, { status: "Contacted" });
-
-        // Update UI
-        appendEmailToHistory(emailData);
+        // ...
     }
-
-    // --- 4. Finalize ---
-    const campaignRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId);
-    await updateDoc(campaignRef, { "stats.leadsCount": taskData.leadIds.length });
 
     statusText.textContent = "Process Finished.";
     spinner.classList.add('hidden');
-    finalMessage.classList.remove('hidden');
-
-    // Clean up
+    document.getElementById('finalMessage').classList.remove('hidden');
     localStorage.removeItem('igniteinbox_generation_task');
         }
 
