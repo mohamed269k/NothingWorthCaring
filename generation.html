@@ -127,100 +127,60 @@
         // ===================================================================
         
         // This is the main function that runs when the page loads
-        async function startGenerationProcess() {
-            // --- Get UI Elements ---
-            const statusText = document.getElementById('generationStatusText');
-            const spinner = document.getElementById('spinner');
-            const finalMessage = document.getElementById('finalMessage');
+        // In generation.html, inside the <script type="module">
+// REPLACE this entire function with the bare-bones version.
 
-            // --- 1. Get and Validate Task Data ---
-            const taskDataString = localStorage.getItem('igniteinbox_generation_task');
-            if (!taskDataString) {
-                statusText.textContent = "Error: No generation task found. Please go back and try again.";
-                spinner.classList.add('hidden');
-                return;
-            }
-            const taskData = JSON.parse(taskDataString);
+async function startGenerationProcess() {
+    // --- Get UI Elements ---
+    const statusText = document.getElementById('generationStatusText');
+    const spinner = document.getElementById('spinner');
+    const finalMessage = document.getElementById('finalMessage');
 
-            // --- 2. Fetch Prerequisite Data (Campaign and Sender) ---
-            let campaignData, senderData;
-            try {
-                statusText.textContent = "Fetching campaign and sender data...";
-                
-                const campaignDoc = await getDoc(doc(db, "users", taskData.userId, "campaigns", taskData.campaignId));
-                if (!campaignDoc.exists()) throw new Error("Campaign data not found.");
-                campaignData = campaignDoc.data();
-                document.getElementById('campaignInfoText').textContent = `Campaign: ${campaignData.name}`;
+    // --- 1. Get Task Data ---
+    const taskDataString = localStorage.getItem('igniteinbox_generation_task');
+    const taskData = JSON.parse(taskDataString);
 
-                const senderDoc = await getDoc(doc(db, "senderProfiles", taskData.userId));
-                if (!senderDoc.exists()) throw new Error("Sender profile not found.");
-                senderData = senderDoc.data();
+    // --- 2. Fetch Prerequisite Data ---
+    statusText.textContent = "Fetching data...";
+    const campaignDoc = await getDoc(doc(db, "users", taskData.userId, "campaigns", taskData.campaignId));
+    const campaignData = campaignDoc.data();
+    document.getElementById('campaignInfoText').textContent = `Campaign: ${campaignData.name}`;
 
-            } catch (error) {
-                console.error("Error during setup:", error);
-                statusText.style.color = '#f28b82';
-                statusText.textContent = `Setup Error: ${error.message}`;
-                spinner.classList.add('hidden');
-                return; // Stop execution if setup fails
-            }
+    const senderDoc = await getDoc(doc(db, "senderProfiles", taskData.userId));
+    const senderData = senderDoc.data();
 
-            // --- 3. Process Each Lead Individually ---
-            for (let i = 0; i < taskData.leadIds.length; i++) {
-                const leadId = taskData.leadIds[i];
-                const leadRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId, "leads", leadId);
-                
-                try {
-                    const leadDoc = await getDoc(leadRef);
-                    if (!leadDoc.exists()) {
-                        console.warn(`Skipping lead ID ${leadId} as it was not found.`);
-                        continue; // Skip to the next lead
-                    }
+    // --- 3. The Core Loop ---
+    for (let i = 0; i < taskData.leadIds.length; i++) {
+        const leadId = taskData.leadIds[i];
+        const leadRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId, "leads", leadId);
+        const leadDoc = await getDoc(leadRef);
+        const leadData = leadDoc.data();
 
-                    const leadData = leadDoc.data();
-                    statusText.textContent = `Generating for ${leadData.FirstName}... (${i + 1}/${taskData.leadIds.length})`;
-                    
-                    // AI Generation
-                    const { subject, body } = await generateSingleEmail(campaignData.goal, senderData, leadData);
-                    
-                    // Create the email data object
-                    const emailData = {
-                        subject, body, type: 'outreach',
-                        recipient: { id: leadId, name: `${leadData.FirstName} ${leadData.LastName}` },
-                        createdAt: new Date()
-                    };
-                    
-                    // --- Perform Firestore Writes for this lead ---
-                    const newEmailRef = doc(collection(db, "users", taskData.userId, "campaigns", taskData.campaignId, "emails"));
-                    await setDoc(newEmailRef, emailData);
-                    await updateDoc(leadRef, { status: "Contacted" });
+        statusText.textContent = `Generating for ${leadData.FirstName}... (${i + 1}/${taskData.leadIds.length})`;
 
-                    // If successful, update the UI immediately for this lead
-                    appendEmailToHistory(emailData);
+        // AI Generation Call
+        const { subject, body } = await generateSingleEmail(campaignData.goal, senderData, leadData);
 
-                } catch (error) {
-                    // If THIS SPECIFIC LEAD fails, log it and move on.
-                    console.error(`Failed to process lead ID ${leadId}:`, error);
-                    // Optionally, display an error card for this specific lead
-                    appendErrorCardToHistory(leadId, error.message);
-                    // This 'continue' ensures we try the next lead even if one fails.
-                    continue;
-                }
-            }
+        // Firestore Write Operations
+        const emailData = { subject, body, type: 'outreach', recipient: { id: leadId, name: `${leadData.FirstName} ${leadData.LastName}` }, createdAt: new Date() };
+        const newEmailRef = doc(collection(db, "users", taskData.userId, "campaigns", taskData.campaignId, "emails"));
+        await setDoc(newEmailRef, emailData);
+        await updateDoc(leadRef, { status: "Contacted" });
 
-            // --- 4. Finalize Process (This code only runs after the loop finishes) ---
-            try {
-                const campaignRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId);
-                await updateDoc(campaignRef, { "stats.leadsCount": taskData.leadIds.length });
-            } catch (error) {
-                console.error("Failed to update final campaign stats:", error);
-            }
+        // Update UI
+        appendEmailToHistory(emailData);
+    }
 
-            statusText.textContent = "Generation Complete!";
-            spinner.classList.add('hidden');
-            finalMessage.classList.remove('hidden');
-            
-            // Clean up localStorage only after everything is truly finished.
-            localStorage.removeItem('igniteinbox_generation_task');
+    // --- 4. Finalize ---
+    const campaignRef = doc(db, "users", taskData.userId, "campaigns", taskData.campaignId);
+    await updateDoc(campaignRef, { "stats.leadsCount": taskData.leadIds.length });
+
+    statusText.textContent = "Process Finished.";
+    spinner.classList.add('hidden');
+    finalMessage.classList.remove('hidden');
+
+    // Clean up
+    localStorage.removeItem('igniteinbox_generation_task');
         }
 
         /**
