@@ -149,6 +149,8 @@
         const resultsActionBar = document.getElementById('resultsActionBar');
 
         let foundProfiles = []; // Store profiles from Google Search
+        let currentPage = 1;    // NEW: Track the current page number
+        let currentQuery = '';  // NEW: Store the last search query
 
         // --- Core Functions ---
         
