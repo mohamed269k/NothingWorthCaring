@@ -149,9 +149,22 @@
         
         // Step 1: Search Google PSE for LinkedIn profiles
         async function searchGooglePSE(apiKey, cx, query) {
-            const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}`;
+            // THE FIX IS HERE: We now wrap the 'query' in encodeURIComponent()
+            const encodedQuery = encodeURIComponent(query);
+            
+            const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodedQuery}`;
+
+            console.log("Making API call to URL:", url); // Add this for final debugging confirmation
+
             const response = await fetch(url);
-            if (!response.ok) throw new Error("Google Search API request failed.");
+            
+            if (!response.ok) {
+                // Try to get a more detailed error message from Google's response
+                const errorData = await response.json();
+                console.error("Google Search API Error Response:", errorData);
+                throw new Error(errorData.error?.message || "Google Search API request failed.");
+            }
+            
             const data = await response.json();
             return data.items || [];
         }
