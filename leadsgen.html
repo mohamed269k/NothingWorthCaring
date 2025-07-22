@@ -174,18 +174,48 @@
             return data.items || [];
         }
 
+        // In leadsgen.html <script>
+function guessDomainFromCompanyName(companyName) {
+    if (!companyName) return '';
+    // 1. Lowercase and remove common suffixes like Inc, LLC, Ltd, etc.
+    let cleanName = companyName.toLowerCase()
+        .replace(/,?\s+(inc|llc|ltd|gmbh|co|corp)\.?$/, '')
+        .trim();
+    // 2. Remove any remaining punctuation
+    cleanName = cleanName.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
+    // 3. Replace spaces with nothing
+    cleanName = cleanName.replace(/\s+/g, '');
+    // 4. Append .com as a best guess
+    return `${cleanName}.com`;
+        }
         // Step 2: Find email for a specific person using Hunter
-        async function findEmailWithHunter(apiKey, firstName, lastName, companyName) {
-            const domain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com'; // Simple domain guess
-            const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&last_name=${lastName}&api_key=${apiKey}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) return 'Not found';
-                const data = await response.json();
-                return data.data?.email || 'Not found';
-            } catch (error) {
-                return 'Error';
+        // In leadsgen.html <script>
+// REPLACE the old findEmailWithHunter function
+async function findEmailWithHunter(apiKey, firstName, lastName, companyName) {
+    const domain = guessDomainFromCompanyName(companyName); // Use our smarter function
+    if (!firstName || !lastName || !domain) {
+        return 'Missing Info';
+    }
+
+    const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&last_name=${lastName}&api_key=${apiKey}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            // Hunter API often returns 404/422 if not found or invalid domain
+            const errorData = await response.json();
+            // We can check for a specific "no result" error if Hunter provides one
+            if (errorData.errors && errorData.errors[0].id === 'no_result') {
+                return 'Not Found';
             }
+            return 'API Error';
+        }
+        const data = await response.json();
+        // Return the email if found, otherwise provide clear "Not Found" feedback
+        return data.data?.email || 'Not Found';
+    } catch (error) {
+        console.error("Hunter API Error:", error);
+        return 'Fetch Error';
+    }
         }
 
         // --- UI Update Functions ---
