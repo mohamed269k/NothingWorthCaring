@@ -1,402 +1,689 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IgniteInbox - Leads Gen</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    <style>
-        /* CORE STYLES (MATCHING YOUR APP) */
-        :root { --brand-orange: #ff4500; --brand-yellow: #ffa500; --bg-dark-1: #0f0f23; --bg-dark-2: #1a1a3a; --bg-dark-3: #2d1b69; --text-light: rgba(255, 255, 255, 0.9); --text-medium: rgba(255, 255, 255, 0.7); --border-color: rgba(255, 255, 255, 0.1); }
-        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--bg-dark-1) 0%, var(--bg-dark-2) 50%, var(--bg-dark-3) 100%); min-height: 100vh; color: var(--text-light); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
-        .header { text-align: center; margin-bottom: 2rem; }
-        h1 { font-size: 2.8rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, var(--brand-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .tagline { font-size: 1.2rem; font-weight: 600; color: rgba(255, 165, 0, 0.9); }
-        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; }
-        .card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-        .card-icon { width: 2.5rem; height: 2.5rem; background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
-        .card-title { font-size: 1.5rem; font-weight: 700; }
-        .btn { padding: .75rem 1.5rem; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-        .btn-primary { background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); color: white; }
-        .btn-secondary { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #fff; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .hidden { display: none !important; }
-        .loading-spinner { border: 4px solid rgba(255,255,255,.3); border-top: 4px solid var(--brand-yellow); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .form-input { width: 100%; padding: .85rem 1rem; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 8px; color: #fff; font-size: 1rem; margin-bottom: 1rem; }
-        .form-label { font-weight: 600; color: var(--text-medium); margin-bottom: 0.5rem; display: block; }
-        .api-key-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
-        .results-table { width: 100%; border-collapse: collapse; }
-        .results-table th, .results-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
-        .results-table th { color: var(--brand-yellow); }
-        .lead-checkbox { width: 18px; height: 18px; accent-color: var(--brand-yellow); }
-        .empty-state { text-align: center; padding: 3rem; color: var(--text-medium); border: 2px dashed var(--border-color); border-radius: 16px; }
-        .btn-find-email { padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
-        .help-link { color: var(--brand-yellow); text-decoration: none; font-weight: 500; font-size: 0.9rem; }
-        .help-link:hover { text-decoration: underline; }
-
-        @media (max-width: 768px) {
-            .api-key-grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Leads Gen</h1>
-            <p class="tagline">Find targeted B2B leads from LinkedIn.</p>
-        </div>
-
-        <!-- API KEY INPUT CARD -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-icon">🔑</div>
-                <div class="card-title">API Configuration</div>
-            </div>
-            <div class="api-key-grid">
-                <div>
-                    <label for="googleApiKey" class="form-label">Google API Key</label>
-                    <input type="password" id="googleApiKey" class="form-input" placeholder="Your Google Cloud API Key">
-                    <a href="https://developers.google.com/custom-search/v1/overview#api_key" target="_blank" class="help-link">How to get this?</a>
-                </div>
-                <div>
-                    <label for="googleCx" class="form-label">Programmable Search Engine ID (CX)</label>
-                    <input type="password" id="googleCx" class="form-input" placeholder="Your Search Engine ID">
-                     <a href="https://programmablesearchengine.google.com/controlpanel/all" target="_blank" class="help-link">How to create one?</a>
-                </div>
-                <div style="grid-column: 1 / -1;">
-                    <label for="hunterApiKey" class="form-label">Hunter.io API Key</label>
-                    <input type="password" id="hunterApiKey" class="form-input" placeholder="Your Hunter.io API Key">
-                    <a href="https://hunter.io/api_keys" target="_blank" class="help-link">Get your free key</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- SEARCH CRITERIA CARD -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-icon">🔍</div>
-                <div class="card-title">Search LinkedIn Profiles</div>
-            </div>
-            <form id="searchForm" class="search-grid">
-                <div>
-                    <label for="jobTitles" class="form-label">Job Title(s)</label>
-                    <input type="text" id="jobTitles" class="form-input" placeholder="e.g., Founder, VP of Sales" required>
-                </div>
-                <div>
-                    <label for="keywords" class="form-label">Keywords / Industry</label>
-                    <input type="text" id="keywords" class="form-input" placeholder="e.g., SaaS, Fintech">
-                </div>
-                <div>
-                    <label for="locations" class="form-label">Location(s)</label>
-                    <input type="text" id="locations" class="form-input" placeholder="e.g., London, Germany">
-                </div>
-                <button type="submit" id="findLeadsBtn" class="btn btn-primary" style="align-self: end; height: 50px; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <span>Find Profiles</span>
-                </button>
-            </form>
-        </div>
-
-        <!-- RESULTS CARD -->
-        <div id="resultsCard" class="card hidden">
-            <div class="card-header">
-                <div class="card-icon">📊</div>
-                <div class="card-title">Results</div>
-            </div>
-            <div id="resultsActionBar" class="hidden" style="margin-bottom: 1.5rem; display: flex; justify-content: flex-end;">
-                <button id="exportCsvBtn" class="btn btn-secondary" disabled>Export Selected to CSV</button>
-            </div>
-            <div id="resultsContainer">
-                <div id="resultsLoader" class="loading-spinner hidden"></div>
-                <div id="resultsEmptyState" class="empty-state">Your results will appear here.</div>
-                <table id="resultsTable" class="results-table hidden">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" id="selectAllResults" class="lead-checkbox"></th>
-                            <th>Name / Title</th>
-                            <th>Company</th>
-                            <th>Email</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultsTableBody"></tbody>
-                </table>
-
-                <!-- THIS IS THE NEW BUTTON TO ADD -->
-                <div id="paginationControls" class="hidden" style="text-align: center; margin-top: 2rem;">
-                    <button id="loadMoreBtn" class="btn btn-secondary">Load More Results</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        // --- DOM Elements ---
-        const googleApiKeyInput = document.getElementById('googleApiKey');
-        const googleCxInput = document.getElementById('googleCx');
-        const hunterApiKeyInput = document.getElementById('hunterApiKey');
-        const searchForm = document.getElementById('searchForm');
-        const findLeadsBtn = document.getElementById('findLeadsBtn');
-        const resultsCard = document.getElementById('resultsCard');
-        const resultsLoader = document.getElementById('resultsLoader');
-        const resultsEmptyState = document.getElementById('resultsEmptyState');
-        const resultsTable = document.getElementById('resultsTable');
-        const resultsTableBody = document.getElementById('resultsTableBody');
-        const selectAllCheckbox = document.getElementById('selectAllResults');
-        const exportCsvBtn = document.getElementById('exportCsvBtn');
-        const resultsActionBar = document.getElementById('resultsActionBar');
-
-        let foundProfiles = []; // Store profiles from Google Search
-        let currentPage = 1;    // NEW: Track the current page number
-        let currentQuery = '';  // NEW: Store the last search query
-
-        // --- Core Functions ---
-        
-        // Step 1: Search Google PSE for LinkedIn profiles
-        async function searchGooglePSE(apiKey, cx, query) {
-            // THE FIX IS HERE: We now wrap the 'query' in encodeURIComponent()
-            const encodedQuery = encodeURIComponent(query);
-            
-            const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodedQuery}`;
-
-            console.log("Making API call to URL:", url); // Add this for final debugging confirmation
-
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                // Try to get a more detailed error message from Google's response
-                const errorData = await response.json();
-                console.error("Google Search API Error Response:", errorData);
-                throw new Error(errorData.error?.message || "Google Search API request failed.");
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>IgniteInbox - Leads Gen</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
+        <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+        <style>
+            /* CORE STYLES (MATCHING YOUR APP) */
+            :root {
+                --brand-orange: #ff4500;
+                --brand-yellow: #ffa500;
+                --bg-dark-1: #0f0f23;
+                --bg-dark-2: #1a1a3a;
+                --bg-dark-3: #2d1b69;
+                --text-light: rgba(255, 255, 255, 0.9);
+                --text-medium: rgba(255, 255, 255, 0.7);
+                --border-color: rgba(255, 255, 255, 0.1);
             }
-            
-            const data = await response.json();
-            return data.items || [];
-        }
-
-        // In leadsgen.html <script>
-function guessDomainFromCompanyName(companyName) {
-    if (!companyName) return '';
-    // 1. Lowercase and remove common suffixes like Inc, LLC, Ltd, etc.
-    let cleanName = companyName.toLowerCase()
-        .replace(/,?\s+(inc|llc|ltd|gmbh|co|corp)\.?$/, '')
-        .trim();
-    // 2. Remove any remaining punctuation
-    cleanName = cleanName.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
-    // 3. Replace spaces with nothing
-    cleanName = cleanName.replace(/\s+/g, '');
-    // 4. Append .com as a best guess
-    return `${cleanName}.com`;
-        }
-        // Step 2: Find email for a specific person using Hunter
-        // In leadsgen.html <script>
-// REPLACE the old findEmailWithHunter function
-async function findEmailWithHunter(apiKey, firstName, lastName, companyName) {
-    const domain = guessDomainFromCompanyName(companyName); // Use our smarter function
-    if (!firstName || !lastName || !domain) {
-        return 'Missing Info';
-    }
-
-    const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&last_name=${lastName}&api_key=${apiKey}`;
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            // Hunter API often returns 404/422 if not found or invalid domain
-            const errorData = await response.json();
-            // We can check for a specific "no result" error if Hunter provides one
-            if (errorData.errors && errorData.errors[0].id === 'no_result') {
-                return 'Not Found';
+            body {
+                font-family: "Inter", sans-serif;
+                background: linear-gradient(
+                    135deg,
+                    var(--bg-dark-1) 0%,
+                    var(--bg-dark-2) 50%,
+                    var(--bg-dark-3) 100%
+                );
+                min-height: 100vh;
+                color: var(--text-light);
             }
-            return 'API Error';
-        }
-        const data = await response.json();
-        // Return the email if found, otherwise provide clear "Not Found" feedback
-        return data.data?.email || 'Not Found';
-    } catch (error) {
-        console.error("Hunter API Error:", error);
-        return 'Fetch Error';
-    }
-        }
-
-        // --- UI Update Functions ---
-        function displayResults(profiles) {
-            resultsTableBody.innerHTML = '';
-            foundProfiles = profiles.map(item => {
-                // Try to parse Name, Title, and Company from the LinkedIn title
-                const parts = item.title.split(' - ');
-                return {
-                    name: parts[0] || 'N/A',
-                    title: parts[1] || 'N/A',
-                    company: parts[2] || 'N/A',
-                    link: item.link,
-                    email: null // Initially no email
-                };
-            });
-
-            if (foundProfiles.length === 0) {
-                resultsEmptyState.innerHTML = '<h3>No LinkedIn profiles found.</h3><p>Try different keywords.</p>';
-                resultsEmptyState.classList.remove('hidden');
-                resultsTable.classList.add('hidden');
-                resultsActionBar.classList.add('hidden');
-                return;
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem 1rem;
             }
-
-            foundProfiles.forEach((profile, index) => {
-                const row = document.createElement('tr');
-                row.dataset.index = index;
-                row.innerHTML = `
-                    <td><input type="checkbox" class="lead-checkbox"></td>
-                    <td><strong>${profile.name}</strong><br><small>${profile.title}</small></td>
-                    <td>${profile.company}</td>
-                    <td class="email-cell"><button class="btn-find-email btn btn-secondary">Find Email</button></td>
-                `;
-                resultsTableBody.appendChild(row);
-            });
-
-            resultsEmptyState.classList.add('hidden');
-            resultsTable.classList.remove('hidden');
-            resultsActionBar.classList.remove('hidden');
-        }
-
-        function updateSelection() {
-            const selectedCount = document.querySelectorAll('.lead-checkbox:checked:not(#selectAllResults)').length;
-            exportCsvBtn.disabled = selectedCount === 0;
-        }
-
-        // --- Event Listeners ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load saved API keys
-            googleApiKeyInput.value = localStorage.getItem('googleApiKey') || '';
-            googleCxInput.value = localStorage.getItem('googleCx') || '';
-            hunterApiKeyInput.value = localStorage.getItem('hunterApiKey') || '';
-
-            // Save API keys on change
-            googleApiKeyInput.addEventListener('change', () => localStorage.setItem('googleApiKey', googleApiKeyInput.value));
-            googleCxInput.addEventListener('change', () => localStorage.setItem('googleCx', googleCxInput.value));
-            hunterApiKeyInput.addEventListener('change', () => localStorage.setItem('hunterApiKey', hunterApiKeyInput.value));
-
-            // Main search form submission
-            searchForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const googleKey = googleApiKeyInput.value.trim();
-                const cx = googleCxInput.value.trim();
-                if (!googleKey || !cx) {
-                    alert('Please provide both Google API Key and Search Engine ID.');
-                    return;
+            .header {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            h1 {
+                font-size: 2.8rem;
+                font-weight: 800;
+                background: linear-gradient(
+                    135deg,
+                    #ffffff 0%,
+                    var(--brand-yellow) 100%
+                );
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .tagline {
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: rgba(255, 165, 0, 0.9);
+            }
+            .card {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border: 1px solid var(--border-color);
+                border-radius: 20px;
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }
+            .card-header {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+            .card-icon {
+                width: 2.5rem;
+                height: 2.5rem;
+                background: linear-gradient(
+                    135deg,
+                    var(--brand-orange),
+                    var(--brand-yellow)
+                );
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.25rem;
+            }
+            .card-title {
+                font-size: 1.5rem;
+                font-weight: 700;
+            }
+            .btn {
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 12px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .btn-primary {
+                background: linear-gradient(
+                    135deg,
+                    var(--brand-orange),
+                    var(--brand-yellow)
+                );
+                color: white;
+            }
+            .btn-secondary {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #fff;
+            }
+            .btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            .hidden {
+                display: none !important;
+            }
+            .loading-spinner {
+                border: 4px solid rgba(255, 255, 255, 0.3);
+                border-top: 4px solid var(--brand-yellow);
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
                 }
+            }
+            .form-input {
+                width: 100%;
+                padding: 0.85rem 1rem;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                color: #fff;
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+            .form-label {
+                font-weight: 600;
+                color: var(--text-medium);
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+            .api-key-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+            }
+            .search-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1.5rem;
+            }
+            .results-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .results-table th,
+            .results-table td {
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .results-table th {
+                color: var(--brand-yellow);
+            }
+            .lead-checkbox {
+                width: 18px;
+                height: 18px;
+                accent-color: var(--brand-yellow);
+            }
+            .empty-state {
+                text-align: center;
+                padding: 3rem;
+                color: var(--text-medium);
+                border: 2px dashed var(--border-color);
+                border-radius: 16px;
+            }
+            .btn-find-email {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
+            .help-link {
+                color: var(--brand-yellow);
+                text-decoration: none;
+                font-weight: 500;
+                font-size: 0.9rem;
+            }
+            .help-link:hover {
+                text-decoration: underline;
+            }
 
-                findLeadsBtn.disabled = true;
-                findLeadsBtn.innerHTML = `<div class="loading-spinner" style="width: 20px; height: 20px;"></div>`;
-                resultsCard.classList.remove('hidden');
-                resultsLoader.classList.remove('hidden');
-                resultsEmptyState.classList.add('hidden');
-                resultsTable.classList.add('hidden');
-                resultsActionBar.classList.add('hidden');
-
-                try {
-                    // --- THIS IS THE NEW, SMARTER QUERY BUILDER ---
-
-                    // 1. Get the raw input from the form fields.
-                    const rawTitles = document.getElementById('jobTitles').value.trim();
-                    const rawKeywords = document.getElementById('keywords').value.trim();
-                    const rawLocations = document.getElementById('locations').value.trim();
-
-                    // 2. Process each input into a query part.
-                    
-                    // For titles, split by comma and join with OR.
-                    // e.g., "Founder, CEO" becomes '("Founder" OR "CEO")'
-                    const titlesPart = rawTitles ? `(${rawTitles.split(',').map(t => `"${t.trim()}"`).join(' OR ')})` : '';
-                    
-                    // For keywords and locations, treat each as a required term.
-                    const keywordsPart = rawKeywords ? `"${rawKeywords}"` : '';
-                    const locationsPart = rawLocations ? `"${rawLocations}"` : '';
-
-                    // 3. Combine all parts into a final query string.
-                    const baseQuery = 'site:linkedin.com/in/ -intitle:"profiles" -inurl:"dir/"';
-                    
-                    // We use .filter(Boolean) to remove any empty parts before joining.
-                    const finalQuery = [baseQuery, titlesPart, keywordsPart, locationsPart].filter(Boolean).join(' AND ');
-                    
-                    console.log("Constructed Query:", finalQuery); // For debugging!
-
-                    // --- END OF NEW QUERY BUILDER ---
-                    
-                    const profiles = await searchGooglePSE(googleKey, cx, finalQuery);
-                    displayResults(profiles);
-
-                } catch (error) {
-                    resultsEmptyState.innerHTML = `<h3>An error occurred.</h3><p>${error.message}</p>`;
-                    resultsEmptyState.classList.remove('hidden');
-                } finally {
-                    findLeadsBtn.disabled = false;
-                    findLeadsBtn.innerHTML = '<span>Find Profiles</span>';
-                    resultsLoader.classList.add('hidden');
-                    updateSelection();
+            @media (max-width: 768px) {
+                .api-key-grid {
+                    grid-template-columns: 1fr;
                 }
-            });
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Leads Gen</h1>
+                <p class="tagline">Find targeted B2B leads from LinkedIn.</p>
+            </div>
 
-            // "Find Email" button click (using event delegation)
-            resultsTableBody.addEventListener('click', async (e) => {
-                if (e.target.classList.contains('btn-find-email')) {
-                    const button = e.target;
-                    const hunterKey = hunterApiKeyInput.value.trim();
-                    if (!hunterKey) {
-                        alert('Please provide your Hunter.io API Key to find emails.');
-                        return;
+            <!-- API KEY INPUT CARD -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🔑</div>
+                    <div class="card-title">API Configuration</div>
+                </div>
+                <div class="api-key-grid">
+                    <div>
+                        <label for="googleApiKey" class="form-label"
+                            >Google API Key</label
+                        >
+                        <input
+                            type="password"
+                            id="googleApiKey"
+                            class="form-input"
+                            placeholder="Your Google Cloud API Key"
+                        />
+                        <a
+                            href="https://developers.google.com/custom-search/v1/overview#api_key"
+                            target="_blank"
+                            class="help-link"
+                            >How to get this?</a
+                        >
+                    </div>
+                    <div>
+                        <label for="googleCx" class="form-label"
+                            >Programmable Search Engine ID (CX)</label
+                        >
+                        <input
+                            type="password"
+                            id="googleCx"
+                            class="form-input"
+                            placeholder="Your Search Engine ID"
+                        />
+                        <a
+                            href="https://programmablesearchengine.google.com/controlpanel/all"
+                            target="_blank"
+                            class="help-link"
+                            >How to create one?</a
+                        >
+                    </div>
+                    <div style="grid-column: 1 / -1">
+                        <label for="hunterApiKey" class="form-label"
+                            >Hunter.io API Key</label
+                        >
+                        <input
+                            type="password"
+                            id="hunterApiKey"
+                            class="form-input"
+                            placeholder="Your Hunter.io API Key"
+                        />
+                        <a
+                            href="https://hunter.io/api_keys"
+                            target="_blank"
+                            class="help-link"
+                            >Get your free key</a
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEARCH CRITERIA CARD -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🔍</div>
+                    <div class="card-title">Search LinkedIn Profiles</div>
+                </div>
+                <form id="searchForm" class="search-grid">
+                    <div>
+                        <label for="jobTitles" class="form-label"
+                            >Job Title(s)</label
+                        >
+                        <input
+                            type="text"
+                            id="jobTitles"
+                            class="form-input"
+                            placeholder="e.g., Founder, VP of Sales"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label for="keywords" class="form-label"
+                            >Keywords / Industry</label
+                        >
+                        <input
+                            type="text"
+                            id="keywords"
+                            class="form-input"
+                            placeholder="e.g., SaaS, Fintech"
+                        />
+                    </div>
+                    <div>
+                        <label for="locations" class="form-label"
+                            >Location(s)</label
+                        >
+                        <input
+                            type="text"
+                            id="locations"
+                            class="form-input"
+                            placeholder="e.g., London, Germany"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        id="findLeadsBtn"
+                        class="btn btn-primary"
+                        style="
+                            align-self: end;
+                            height: 50px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
+                        "
+                    >
+                        <span>Find Profiles</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- RESULTS CARD -->
+            <div id="resultsCard" class="card hidden">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">Results</div>
+                </div>
+                <div
+                    id="resultsActionBar"
+                    class="hidden"
+                    style="
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        justify-content: flex-end;
+                    "
+                >
+                    <button
+                        id="exportCsvBtn"
+                        class="btn btn-secondary"
+                        disabled
+                    >
+                        Export Selected to CSV
+                    </button>
+                </div>
+                <div id="resultsContainer">
+                    <div
+                        id="resultsLoader"
+                        class="loading-spinner hidden"
+                    ></div>
+                    <div id="resultsEmptyState" class="empty-state">
+                        Your results will appear here.
+                    </div>
+                    <table id="resultsTable" class="results-table hidden">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input
+                                        type="checkbox"
+                                        id="selectAllResults"
+                                        class="lead-checkbox"
+                                    />
+                                </th>
+                                <th>Name / Title</th>
+                                <th>Company</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody"></tbody>
+                    </table>
+
+                    <!-- THIS IS THE NEW BUTTON TO ADD -->
+                    <div
+                        id="paginationControls"
+                        class="hidden"
+                        style="text-align: center; margin-top: 2rem"
+                    >
+                        <button id="loadMoreBtn" class="btn btn-secondary">
+                            Load More Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="module">
+                    // --- DOM Elements ---
+                    const googleApiKeyInput = document.getElementById('googleApiKey');
+                    const googleCxInput = document.getElementById('googleCx');
+                    const hunterApiKeyInput = document.getElementById('hunterApiKey');
+                    const searchForm = document.getElementById('searchForm');
+                    const findLeadsBtn = document.getElementById('findLeadsBtn');
+                    const resultsCard = document.getElementById('resultsCard');
+                    const resultsLoader = document.getElementById('resultsLoader');
+                    const resultsEmptyState = document.getElementById('resultsEmptyState');
+                    const resultsTable = document.getElementById('resultsTable');
+                    const resultsTableBody = document.getElementById('resultsTableBody');
+                    const selectAllCheckbox = document.getElementById('selectAllResults');
+                    const exportCsvBtn = document.getElementById('exportCsvBtn');
+                    const resultsActionBar = document.getElementById('resultsActionBar');
+
+                    let foundProfiles = []; // Store profiles from Google Search
+                    let currentPage = 1;    // NEW: Track the current page number
+                    let currentQuery = '';  // NEW: Store the last search query
+
+                    // --- Core Functions ---
+
+                    // Step 1: Search Google PSE for LinkedIn profiles
+                    // In leadsgen.html <script>
+            async function searchGooglePSE(apiKey, cx, query, start = 1) { // NEW: Add 'start' parameter
+                const encodedQuery = encodeURIComponent(query);
+                // NEW: Add the 'start' parameter to the URL
+                const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodedQuery}&start=${start}`;
+                // ... rest of the function is the same
+                const response = await fetch(url);
+                // ...
+                const data = await response.json();
+                return data; // Return the whole data object now
                     }
-                    
-                    button.disabled = true;
-                    button.innerHTML = `<div class="loading-spinner" style="width: 12px; height: 12px; margin: auto;"></div>`;
 
-                    const row = button.closest('tr');
-                    const index = parseInt(row.dataset.index, 10);
-                    const profile = foundProfiles[index];
-                    const nameParts = profile.name.split(' ');
-                    const firstName = nameParts[0];
-                    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
-
-                    const email = await findEmailWithHunter(hunterKey, firstName, lastName, profile.company);
-                    profile.email = email; // Save the found email to our data
-                    row.querySelector('.email-cell').innerHTML = email;
+                    // In leadsgen.html <script>
+            function guessDomainFromCompanyName(companyName) {
+                if (!companyName) return '';
+                // 1. Lowercase and remove common suffixes like Inc, LLC, Ltd, etc.
+                let cleanName = companyName.toLowerCase()
+                    .replace(/,?\s+(inc|llc|ltd|gmbh|co|corp)\.?$/, '')
+                    .trim();
+                // 2. Remove any remaining punctuation
+                cleanName = cleanName.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
+                // 3. Replace spaces with nothing
+                cleanName = cleanName.replace(/\s+/g, '');
+                // 4. Append .com as a best guess
+                return `${cleanName}.com`;
+                    }
+                    // Step 2: Find email for a specific person using Hunter
+                    // In leadsgen.html <script>
+            // REPLACE the old findEmailWithHunter function
+            async function findEmailWithHunter(apiKey, firstName, lastName, companyName) {
+                const domain = guessDomainFromCompanyName(companyName); // Use our smarter function
+                if (!firstName || !lastName || !domain) {
+                    return 'Missing Info';
                 }
-            });
 
-            // Selection listeners
-            selectAllCheckbox.addEventListener('change', () => {
-                resultsTableBody.querySelectorAll('.lead-checkbox').forEach(cb => cb.checked = selectAllCheckbox.checked);
-                updateSelection();
-            });
-            resultsTableBody.addEventListener('change', (e) => {
-                if(e.target.classList.contains('lead-checkbox')) updateSelection();
-            });
+                const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&last_name=${lastName}&api_key=${apiKey}`;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        // Hunter API often returns 404/422 if not found or invalid domain
+                        const errorData = await response.json();
+                        // We can check for a specific "no result" error if Hunter provides one
+                        if (errorData.errors && errorData.errors[0].id === 'no_result') {
+                            return 'Not Found';
+                        }
+                        return 'API Error';
+                    }
+                    const data = await response.json();
+                    // Return the email if found, otherwise provide clear "Not Found" feedback
+                    return data.data?.email || 'Not Found';
+                } catch (error) {
+                    console.error("Hunter API Error:", error);
+                    return 'Fetch Error';
+                }
+                    }
 
-            // Export to CSV
-            exportCsvBtn.addEventListener('click', () => {
-                const leadsToExport = [];
-                resultsTableBody.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
-                    const index = parseInt(cb.closest('tr').dataset.index, 10);
-                    const profile = foundProfiles[index];
-                    leadsToExport.push({
-                        FirstName: profile.name.split(' ')[0] || '',
-                        LastName: profile.name.split(' ').slice(1).join(' ') || '',
-                        Email: profile.email || 'Not Found',
-                        Role: profile.title,
-                        Company: profile.company
+                    // --- UI Update Functions ---
+                    function displayResults(profiles) {
+                        if (currentPage === 1) {
+                    resultsTableBody.innerHTML = '';
+                }
+
+                const newFoundProfiles = newProfiles.map(item => { /* ... your parsing logic ... */ });
+                foundProfiles.push(...newFoundProfiles); // Add new profiles to our main array
+
+                newFoundProfiles.forEach((profile) => {
+                    const index = foundProfiles.length - 1;
+                        resultsTableBody.innerHTML = '';
+                        foundProfiles = profiles.map(item => {
+                            // Try to parse Name, Title, and Company from the LinkedIn title
+                            const parts = item.title.split(' - ');
+                            return {
+                                name: parts[0] || 'N/A',
+                                title: parts[1] || 'N/A',
+                                company: parts[2] || 'N/A',
+                                link: item.link,
+                                email: null // Initially no email
+                            };
+                        });
+
+                        if (foundProfiles.length === 0) {
+                            resultsEmptyState.innerHTML = '<h3>No LinkedIn profiles found.</h3><p>Try different keywords.</p>';
+                            resultsEmptyState.classList.remove('hidden');
+                            resultsTable.classList.add('hidden');
+                            resultsActionBar.classList.add('hidden');
+                            return;
+                        }
+
+                        foundProfiles.forEach((profile, index) => {
+                            const row = document.createElement('tr');
+                            row.dataset.index = index;
+                            row.innerHTML = `
+                                <td><input type="checkbox" class="lead-checkbox"></td>
+                                <td><strong>${profile.name}</strong><br><small>${profile.title}</small></td>
+                                <td>${profile.company}</td>
+                                <td class="email-cell"><button class="btn-find-email btn btn-secondary">Find Email</button></td>
+                            `;
+                            resultsTableBody.appendChild(row);
+                        });
+
+                        resultsEmptyState.classList.add('hidden');
+                        resultsTable.classList.remove('hidden');
+                        resultsActionBar.classList.remove('hidden');
+                    }
+
+                    function updateSelection() {
+                        const selectedCount = document.querySelectorAll('.lead-checkbox:checked:not(#selectAllResults)').length;
+                        exportCsvBtn.disabled = selectedCount === 0;
+                    }
+
+                    // --- Event Listeners ---
+                    document.addEventListener('DOMContentLoaded', () => {
+                        // Load saved API keys
+                        googleApiKeyInput.value = localStorage.getItem('googleApiKey') || '';
+                        googleCxInput.value = localStorage.getItem('googleCx') || '';
+                        hunterApiKeyInput.value = localStorage.getItem('hunterApiKey') || '';
+
+                        // Save API keys on change
+                        googleApiKeyInput.addEventListener('change', () => localStorage.setItem('googleApiKey', googleApiKeyInput.value));
+                        googleCxInput.addEventListener('change', () => localStorage.setItem('googleCx', googleCxInput.value));
+                        hunterApiKeyInput.addEventListener('change', () => localStorage.setItem('hunterApiKey', hunterApiKeyInput.value));
+
+                        // Main search form submission
+                        searchForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const googleKey = googleApiKeyInput.value.trim();
+                            const cx = googleCxInput.value.trim();
+                            if (!googleKey || !cx) {
+                                alert('Please provide both Google API Key and Search Engine ID.');
+                                return;
+                            }
+
+                            findLeadsBtn.disabled = true;
+                            findLeadsBtn.innerHTML = `<div class="loading-spinner" style="width: 20px; height: 20px;"></div>`;
+                            resultsCard.classList.remove('hidden');
+                            resultsLoader.classList.remove('hidden');
+                            resultsEmptyState.classList.add('hidden');
+                            resultsTable.classList.add('hidden');
+                            resultsActionBar.classList.add('hidden');
+
+                            try {
+
+                    // In leadsgen.html <script>
+
+                    // ... (your query builder logic) ...
+                    const finalQuery = [baseQuery, titlesPart, keywordsPart, locationsPart].filter(Boolean).join(' AND ');
+
+                    // --- PAGINATION LOGIC START ---
+                    currentPage = 1;        // Reset to page 1 for a new search
+                    currentQuery = finalQuery; // Store the new query
+                    foundProfiles = [];     // Clear previous results
+
+                    const data = await searchGooglePSE(googleKey, cx, currentQuery, 1);
+                    const profiles = data.items || [];
+                    displayResults(profiles); // displayResults will now append
+
+                    // Show or hide the "Load More" button
+                    const paginationControls = document.getElementById('paginationControls');
+                    if (data.queries?.nextPage) {
+                        paginationControls.classList.remove('hidden');
+                    } else {
+                        paginationControls.classList.add('hidden');
+                    }
+                    // --- PAGINATION LOGIC END ---
+
+                }
+                                // --- THIS IS THE NEW, SMARTER QUERY BUILDER ---
+
+                                // 1. Get the raw input from the form fields.
+                                const rawTitles = document.getElementById('jobTitles').value.trim();
+                                const rawKeywords = document.getElementById('keywords').value.trim();
+                                const rawLocations = document.getElementById('locations').value.trim();
+
+                                // 2. Process each input into a query part.
+
+                                // For titles, split by comma and join with OR.
+                                // e.g., "Founder, CEO" becomes '("Founder" OR "CEO")'
+                                const titlesPart = rawTitles ? `(${rawTitles.split(',').map(t => `"${t.trim()}"`).join(' OR ')})` : '';
+
+                                // For keywords and locations, treat each as a required term.
+                                const keywordsPart = rawKeywords ? `"${rawKeywords}"` : '';
+                                const locationsPart = rawLocations ? `"${rawLocations}"` : '';
+
+                                // 3. Combine all parts into a final query string.
+                                const baseQuery = 'site:linkedin.com/in/ -intitle:"profiles" -inurl:"dir/"';
+
+                                // We use .filter(Boolean) to remove any empty parts before joining.
+                                const finalQuery = [baseQuery, titlesPart, keywordsPart, locationsPart].filter(Boolean).join(' AND ');
+
+                                console.log("Constructed Query:", finalQuery); // For debugging!
+
+                                // --- END OF NEW QUERY BUILDER ---
+
+                                const profiles = await searchGooglePSE(googleKey, cx, finalQuery);
+                                displayResults(profiles);
+
+                            } catch (error) {
+                                resultsEmptyState.innerHTML = `<h3>An error occurred.</h3><p>${error.message}</p>`;
+                                resultsEmptyState.classList.remove('hidden');
+                            } finally {
+                                findLeadsBtn.disabled = false;
+                                findLeadsBtn.innerHTML = '<span>Find Profiles</span>';
+                                resultsLoader.classList.add('hidden');
+                                updateSelection();
+                            }
+                        });
+
+                        // "Find Email" button click (using event delegation)
+                        resultsTableBody.addEventListener('click', async (e) => {
+                            if (e.target.classList.contains('btn-find-email')) {
+                                const button = e.target;
+                                const hunterKey = hunterApiKeyInput.value.trim();
+                                if (!hunterKey) {
+                                    alert('Please provide your Hunter.io API Key to find emails.');
+                                    return;
+                                }
+
+                                button.disabled = true;
+                                button.innerHTML = `<div class="loading-spinner" style="width: 12px; height: 12px; margin: auto;"></div>`;
+
+                                const row = button.closest('tr');
+                                const index = parseInt(row.dataset.index, 10);
+                                const profile = foundProfiles[index];
+                                const nameParts = profile.name.split(' ');
+                                const firstName = nameParts[0];
+                                const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+
+                                const email = await findEmailWithHunter(hunterKey, firstName, lastName, profile.company);
+                                profile.email = email; // Save the found email to our data
+                                row.querySelector('.email-cell').innerHTML = email;
+                            }
+                        });
+
+                        // Selection listeners
+                        selectAllCheckbox.addEventListener('change', () => {
+                            resultsTableBody.querySelectorAll('.lead-checkbox').forEach(cb => cb.checked = selectAllCheckbox.checked);
+                            updateSelection();
+                        });
+                        resultsTableBody.addEventListener('change', (e) => {
+                            if(e.target.classList.contains('lead-checkbox')) updateSelection();
+                        });
+
+                        // Export to CSV
+                        exportCsvBtn.addEventListener('click', () => {
+                            const leadsToExport = [];
+                            resultsTableBody.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
+                                const index = parseInt(cb.closest('tr').dataset.index, 10);
+                                const profile = foundProfiles[index];
+                                leadsToExport.push({
+                                    FirstName: profile.name.split(' ')[0] || '',
+                                    LastName: profile.name.split(' ').slice(1).join(' ') || '',
+                                    Email: profile.email || 'Not Found',
+                                    Role: profile.title,
+                                    Company: profile.company
+                                });
+                            });
+                            if (leadsToExport.length === 0) return;
+
+                            const worksheet = XLSX.utils.json_to_sheet(leadsToExport);
+                            const csvString = XLSX.utils.sheet_to_csv(worksheet);
+                            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = 'igniteinbox_leads.csv';
+                            link.click();
+                        });
                     });
-                });
-                if (leadsToExport.length === 0) return;
-                
-                const worksheet = XLSX.utils.json_to_sheet(leadsToExport);
-                const csvString = XLSX.utils.sheet_to_csv(worksheet);
-                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'igniteinbox_leads.csv';
-                link.click();
-            });
-        });
-    </script>
-</body>
+        </script>
+    </body>
 </html>
