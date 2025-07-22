@@ -243,15 +243,37 @@
                 resultsLoader.classList.remove('hidden');
                 resultsEmptyState.classList.add('hidden');
                 resultsTable.classList.add('hidden');
+                resultsActionBar.classList.add('hidden');
 
                 try {
-                    const jobTitles = document.getElementById('jobTitles').value.trim();
-                    const keywords = document.getElementById('keywords').value.trim();
-                    const locations = document.getElementById('locations').value.trim();
-                    // Construct the "X-Ray" search query
-                    const query = `site:linkedin.com/in/ -intitle:"profiles" -inurl:"dir/" "${jobTitles}" "${keywords}" "${locations}"`;
+                    // --- THIS IS THE NEW, SMARTER QUERY BUILDER ---
+
+                    // 1. Get the raw input from the form fields.
+                    const rawTitles = document.getElementById('jobTitles').value.trim();
+                    const rawKeywords = document.getElementById('keywords').value.trim();
+                    const rawLocations = document.getElementById('locations').value.trim();
+
+                    // 2. Process each input into a query part.
                     
-                    const profiles = await searchGooglePSE(googleKey, cx, query);
+                    // For titles, split by comma and join with OR.
+                    // e.g., "Founder, CEO" becomes '("Founder" OR "CEO")'
+                    const titlesPart = rawTitles ? `(${rawTitles.split(',').map(t => `"${t.trim()}"`).join(' OR ')})` : '';
+                    
+                    // For keywords and locations, treat each as a required term.
+                    const keywordsPart = rawKeywords ? `"${rawKeywords}"` : '';
+                    const locationsPart = rawLocations ? `"${rawLocations}"` : '';
+
+                    // 3. Combine all parts into a final query string.
+                    const baseQuery = 'site:linkedin.com/in/ -intitle:"profiles" -inurl:"dir/"';
+                    
+                    // We use .filter(Boolean) to remove any empty parts before joining.
+                    const finalQuery = [baseQuery, titlesPart, keywordsPart, locationsPart].filter(Boolean).join(' AND ');
+                    
+                    console.log("Constructed Query:", finalQuery); // For debugging!
+
+                    // --- END OF NEW QUERY BUILDER ---
+                    
+                    const profiles = await searchGooglePSE(googleKey, cx, finalQuery);
                     displayResults(profiles);
 
                 } catch (error) {
