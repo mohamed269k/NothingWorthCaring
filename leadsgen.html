@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IgniteInbox - Leads Gen</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- SheetJS library for Excel export -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         /* CORE STYLES (MATCHING YOUR APP) */
@@ -36,53 +35,14 @@
         .help-link { color: var(--brand-yellow); text-decoration: none; font-weight: 500; font-size: 0.9rem; }
         .help-link:hover { text-decoration: underline; }
 
-        /* --- NEW: PAGINATION STYLES --- */
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 2rem;
-            user-select: none;
-        }
-        .pagination-list {
-            display: flex;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            gap: 0.5rem;
-        }
-        .pagination-item a {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-width: 40px;
-            height: 40px;
-            padding: 0 0.5rem;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            color: var(--text-medium);
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-        .pagination-item a:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
-        }
-        .pagination-item.active a {
-            background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow));
-            color: white;
-            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.2);
-        }
-        .pagination-item.disabled a {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: rgba(255,255,255,0.05);
-        }
-        .pagination-item.disabled a:hover {
-            background: rgba(255,255,255,0.05); /* Prevent hover effect on disabled */
-            color: var(--text-medium);
-        }
+        /* PAGINATION STYLES */
+        .pagination-container { display: flex; justify-content: center; align-items: center; margin-top: 2rem; user-select: none; }
+        .pagination-list { display: flex; list-style: none; padding: 0; margin: 0; gap: 0.5rem; }
+        .pagination-item a { display: flex; justify-content: center; align-items: center; min-width: 40px; height: 40px; padding: 0 0.5rem; border-radius: 8px; background: rgba(255,255,255,0.1); color: var(--text-medium); text-decoration: none; font-weight: 600; transition: all 0.2s ease; }
+        .pagination-item a:hover { background: rgba(255,255,255,0.2); color: white; }
+        .pagination-item.active a { background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); color: white; }
+        .pagination-item.disabled a { opacity: 0.5; cursor: not-allowed; background: rgba(255,255,255,0.05); }
+        .pagination-item.disabled a:hover { background: rgba(255,255,255,0.05); color: var(--text-medium); }
 
         @media (max-width: 768px) {
             .api-key-grid { grid-template-columns: 1fr; }
@@ -154,7 +114,8 @@
                 <div class="card-icon">📊</div>
                 <div class="card-title">Results</div>
             </div>
-            <div id="resultsActionBar" class="hidden" style="margin-bottom: 1.5rem; display: flex; justify-content: flex-end;">
+            <div id="resultsActionBar" class="hidden" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                 <div id="resultsInfoText" style="font-weight: 500; color: var(--text-medium);"></div>
                 <button id="exportCsvBtn" class="btn btn-secondary" disabled>Export Selected to CSV</button>
             </div>
             <div id="resultsContainer">
@@ -195,14 +156,17 @@
         const resultsActionBar = document.getElementById('resultsActionBar');
         const paginationContainer = document.getElementById('paginationContainer');
         const paginationList = document.getElementById('paginationList');
+        const resultsInfoText = document.getElementById('resultsInfoText');
 
         // --- State Variables ---
-        let foundProfiles = []; // Holds data for the CURRENT page
+        let foundProfiles = []; // Holds data for the CURRENT displayed page
         let currentPage = 1;
         let currentQuery = '';
         let totalResults = 0;
+        const RESULTS_PER_PAGE = 50;
+        const API_CALLS_PER_PAGE = 5; // 5 calls * 10 results/call = 50
 
-        // --- Core Functions ---
+        // --- Core API Functions ---
         
         async function searchGooglePSE(apiKey, cx, query, start = 1) {
             const encodedQuery = encodeURIComponent(query);
@@ -214,7 +178,21 @@
             }
             return await response.json();
         }
-        
+
+        async function fetchPageResults(apiKey, cx, query, pageNumber) {
+            const promises = [];
+            const startOffset = (pageNumber - 1) * RESULTS_PER_PAGE;
+
+            for (let i = 0; i < API_CALLS_PER_PAGE; i++) {
+                const startIndex = startOffset + (i * 10) + 1;
+                if (startIndex > 100) break; // Google's hard limit
+                promises.push(searchGooglePSE(apiKey, cx, query, startIndex));
+            }
+            
+            const responses = await Promise.all(promises);
+            return responses.flatMap(response => response.items || []);
+        }
+
         function guessDomainFromCompanyName(companyName) {
             if (!companyName) return '';
             let cleanName = companyName.toLowerCase()
@@ -257,6 +235,7 @@
                 resultsEmptyState.innerHTML = '<h3>No LinkedIn profiles found for this page.</h3><p>Try a different page or broaden your search.</p>';
                 resultsEmptyState.classList.remove('hidden');
                 resultsTable.classList.add('hidden');
+                resultsActionBar.classList.add('hidden');
                 return;
             }
 
@@ -279,7 +258,7 @@
 
         function renderPagination() {
             paginationList.innerHTML = '';
-            const totalPages = Math.min(Math.ceil(totalResults / 10), 10);
+            const totalPages = Math.min(Math.ceil(totalResults / RESULTS_PER_PAGE), 2); // Max 2 pages of 50
             
             if (totalPages <= 1) {
                 paginationContainer.classList.add('hidden');
@@ -294,7 +273,7 @@
             for (let i = 1; i <= totalPages; i++) {
                 const pageItem = document.createElement('li');
                 pageItem.className = `pagination-item ${i === currentPage ? 'active' : ''}`;
-                pageItem.innerHTML = `<a href="#" data-page="${i}">${i}</a>`;
+                pageItem.innerHTML = `<a href="#" data-page="${i}">Page ${i}</a>`;
                 paginationList.appendChild(pageItem);
             }
 
@@ -307,25 +286,26 @@
         }
 
         async function goToPage(pageNumber) {
-            const totalPages = Math.min(Math.ceil(totalResults / 10), 10);
+            const totalPages = Math.min(Math.ceil(totalResults / RESULTS_PER_PAGE), 2);
             if (pageNumber < 1 || pageNumber > totalPages) return;
 
             currentPage = pageNumber;
-            const startIndex = (currentPage - 1) * 10 + 1;
             
             resultsLoader.classList.remove('hidden');
             resultsTable.classList.add('hidden');
             paginationContainer.classList.add('hidden');
+            resultsInfoText.textContent = '';
 
             const googleKey = googleApiKeyInput.value.trim();
             const cx = googleCxInput.value.trim();
 
             try {
-                const data = await searchGooglePSE(googleKey, cx, currentQuery, startIndex);
-                displayResults(data.items || []);
+                const profiles = await fetchPageResults(googleKey, cx, currentQuery, currentPage);
+                displayResults(profiles);
                 renderPagination();
                 selectAllCheckbox.checked = false;
                 updateSelection();
+                resultsInfoText.textContent = `Showing page ${currentPage}. Total found: ~${totalResults}`;
             } catch (error) {
                 alert("Error fetching page: " + error.message);
             } finally {
@@ -358,12 +338,13 @@
                 }
 
                 findLeadsBtn.disabled = true;
-                findLeadsBtn.innerHTML = `<div class="loading-spinner" style="width: 20px; height: 20px;"></div>`;
+                findLeadsBtn.innerHTML = `<div class="loading-spinner"></div>`;
                 resultsCard.classList.remove('hidden');
                 resultsLoader.classList.remove('hidden');
                 resultsEmptyState.classList.add('hidden');
                 resultsTable.classList.add('hidden');
                 paginationContainer.classList.add('hidden');
+                resultsActionBar.classList.add('hidden');
 
                 try {
                     const rawTitles = document.getElementById('jobTitles').value.trim();
@@ -375,12 +356,21 @@
                     const baseQuery = 'site:linkedin.com/in/ -intitle:"profiles" -inurl:"dir/"';
                     currentQuery = [baseQuery, titlesPart, keywordsPart, locationsPart].filter(Boolean).join(' AND ');
                     
-                    const data = await searchGooglePSE(googleKey, cx, currentQuery, 1);
-                    totalResults = parseInt(data.searchInformation?.totalResults || '0', 10);
+                    const initialData = await searchGooglePSE(googleKey, cx, currentQuery, 1);
+                    totalResults = parseInt(initialData.searchInformation?.totalResults || '0', 10);
+                    
+                    if (totalResults === 0) {
+                        displayResults([]);
+                        paginationContainer.classList.add('hidden');
+                        return;
+                    }
+
+                    const firstPageProfiles = await fetchPageResults(googleKey, cx, currentQuery, 1);
                     currentPage = 1;
                     
-                    displayResults(data.items || []);
+                    displayResults(firstPageProfiles);
                     renderPagination();
+                    resultsInfoText.textContent = `Showing results 1-${firstPageProfiles.length} of approx. ${totalResults}`;
                     
                 } catch (error) {
                     resultsEmptyState.innerHTML = `<h3>An error occurred.</h3><p>${error.message}</p>`;
