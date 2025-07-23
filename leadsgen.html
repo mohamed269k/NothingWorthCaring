@@ -16,9 +16,6 @@
         h1 { font-size: 2.8rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, var(--brand-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .tagline { font-size: 1.2rem; font-weight: 600; color: rgba(255, 165, 0, 0.9); }
         .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; }
-        .card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-        .card-icon { width: 2.5rem; height: 2.5rem; background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
-        .card-title { font-size: 1.5rem; font-weight: 700; }
         .btn { padding: .75rem 1.5rem; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-primary { background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); color: white; }
         .btn-secondary { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #fff; }
@@ -39,13 +36,61 @@
         .help-link { color: var(--brand-yellow); text-decoration: none; font-weight: 500; font-size: 0.9rem; }
         .help-link:hover { text-decoration: underline; }
 
+        /* --- NEW: PAGINATION STYLES --- */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2rem;
+            user-select: none;
+        }
+        .pagination-list {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            gap: 0.5rem;
+        }
+        .pagination-item a {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 0.5rem;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-medium);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .pagination-item a:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .pagination-item.active a {
+            background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow));
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.2);
+        }
+        .pagination-item.disabled a {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255,255,255,0.05);
+        }
+        .pagination-item.disabled a:hover {
+            background: rgba(255,255,255,0.05); /* Prevent hover effect on disabled */
+            color: var(--text-medium);
+        }
+
         @media (max-width: 768px) {
             .api-key-grid { grid-template-columns: 1fr; }
             .results-table thead { display: none; }
             .results-table tr { display: block; margin-bottom: 1rem; border-radius: 12px; padding: 1rem; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.15); }
             .results-table td { display: flex; justify-content: space-between; align-items: center; padding: .8rem .5rem; border-bottom: 1px dashed rgba(255,255,255,.1); text-align: right; }
             .results-table td:last-child { border-bottom: none; }
-            .results-table td::before { content: attr(data-label); font-weight: 600; color: var(--brand-yellow); text-align: left; padding-right: 1rem; }
+            .results-table td::before { content: attr(data-label); font-weight: 600; color: var(--brand-yellow); text-align: left; padding-right: 1rem; flex-shrink: 0; }
         }
     </style>
 </head>
@@ -56,7 +101,6 @@
             <p class="tagline">Find targeted B2B leads from LinkedIn.</p>
         </div>
 
-        <!-- API KEY INPUT CARD -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon">🔑</div>
@@ -81,7 +125,6 @@
             </div>
         </div>
 
-        <!-- SEARCH CRITERIA CARD -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon">🔍</div>
@@ -106,7 +149,6 @@
             </form>
         </div>
 
-        <!-- RESULTS CARD -->
         <div id="resultsCard" class="card hidden">
             <div class="card-header">
                 <div class="card-icon">📊</div>
@@ -129,9 +171,8 @@
                     </thead>
                     <tbody id="resultsTableBody"></tbody>
                 </table>
-                <!-- NEW: PAGINATION CONTROLS -->
-                <div id="paginationControls" class="hidden" style="text-align: center; margin-top: 2rem;">
-                    <button id="loadMoreBtn" class="btn btn-secondary">Load More Results</button>
+                <div id="paginationContainer" class="pagination-container hidden">
+                    <ul id="paginationList" class="pagination-list"></ul>
                 </div>
             </div>
         </div>
@@ -152,23 +193,20 @@
         const selectAllCheckbox = document.getElementById('selectAllResults');
         const exportCsvBtn = document.getElementById('exportCsvBtn');
         const resultsActionBar = document.getElementById('resultsActionBar');
-        const paginationControls = document.getElementById('paginationControls');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const paginationList = document.getElementById('paginationList');
 
         // --- State Variables ---
-        let foundProfiles = []; // Store all profiles found across pages
+        let foundProfiles = []; // Holds data for the CURRENT page
         let currentPage = 1;
         let currentQuery = '';
+        let totalResults = 0;
 
         // --- Core Functions ---
         
-        /**
-         * Search Google PSE for LinkedIn profiles, with pagination.
-         */
         async function searchGooglePSE(apiKey, cx, query, start = 1) {
             const encodedQuery = encodeURIComponent(query);
             const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodedQuery}&start=${start}`;
-            
             const response = await fetch(url);
             if (!response.ok) {
                 const errorData = await response.json();
@@ -177,9 +215,6 @@
             return await response.json();
         }
         
-        /**
-         * NEW: Smarter function to guess a company's domain.
-         */
         function guessDomainFromCompanyName(companyName) {
             if (!companyName) return '';
             let cleanName = companyName.toLowerCase()
@@ -190,9 +225,6 @@
             return `${cleanName}.com`;
         }
 
-        /**
-         * NEW: Improved function to find an email with Hunter.io.
-         */
         async function findEmailWithHunter(apiKey, firstName, lastName, companyName) {
             const domain = guessDomainFromCompanyName(companyName);
             if (!firstName || !lastName || !domain) return 'Missing Info';
@@ -209,23 +241,9 @@
         }
 
         // --- UI Update Functions ---
-        /**
-         * NEW: Appends new profiles to the table instead of replacing.
-         */
-        function displayResults(newProfiles) {
-            if (currentPage === 1) {
-                resultsTableBody.innerHTML = '';
-            }
-
-            if (newProfiles.length === 0 && currentPage === 1) {
-                resultsEmptyState.innerHTML = '<h3>No LinkedIn profiles found.</h3><p>Try different keywords.</p>';
-                resultsEmptyState.classList.remove('hidden');
-                resultsTable.classList.add('hidden');
-                resultsActionBar.classList.add('hidden');
-                return;
-            }
-            
-            const newParsedProfiles = newProfiles.map(item => {
+        function displayResults(profiles) {
+            resultsTableBody.innerHTML = '';
+            foundProfiles = profiles.map(item => {
                 const parts = item.title.replace(' - LinkedIn', '').split(' - ');
                 return {
                     name: parts[0] || 'N/A',
@@ -235,12 +253,16 @@
                 };
             });
 
-            foundProfiles.push(...newParsedProfiles);
+            if (foundProfiles.length === 0) {
+                resultsEmptyState.innerHTML = '<h3>No LinkedIn profiles found for this page.</h3><p>Try a different page or broaden your search.</p>';
+                resultsEmptyState.classList.remove('hidden');
+                resultsTable.classList.add('hidden');
+                return;
+            }
 
-            newParsedProfiles.forEach((profile, i) => {
-                const overallIndex = (currentPage - 1) * 10 + i;
+            foundProfiles.forEach((profile, index) => {
                 const row = document.createElement('tr');
-                row.dataset.index = overallIndex;
+                row.dataset.index = index;
                 row.innerHTML = `
                     <td data-label="Select"><input type="checkbox" class="lead-checkbox"></td>
                     <td data-label="Name / Title"><strong>${profile.name}</strong><br><small>${profile.title}</small></td>
@@ -255,14 +277,70 @@
             resultsActionBar.classList.remove('hidden');
         }
 
+        function renderPagination() {
+            paginationList.innerHTML = '';
+            const totalPages = Math.min(Math.ceil(totalResults / 10), 10);
+            
+            if (totalPages <= 1) {
+                paginationContainer.classList.add('hidden');
+                return;
+            }
+            
+            const prevItem = document.createElement('li');
+            prevItem.className = `pagination-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevItem.innerHTML = `<a href="#" data-page="${currentPage - 1}">&laquo;</a>`;
+            paginationList.appendChild(prevItem);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageItem = document.createElement('li');
+                pageItem.className = `pagination-item ${i === currentPage ? 'active' : ''}`;
+                pageItem.innerHTML = `<a href="#" data-page="${i}">${i}</a>`;
+                paginationList.appendChild(pageItem);
+            }
+
+            const nextItem = document.createElement('li');
+            nextItem.className = `pagination-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextItem.innerHTML = `<a href="#" data-page="${currentPage + 1}">&raquo;</a>`;
+            paginationList.appendChild(nextItem);
+
+            paginationContainer.classList.remove('hidden');
+        }
+
+        async function goToPage(pageNumber) {
+            const totalPages = Math.min(Math.ceil(totalResults / 10), 10);
+            if (pageNumber < 1 || pageNumber > totalPages) return;
+
+            currentPage = pageNumber;
+            const startIndex = (currentPage - 1) * 10 + 1;
+            
+            resultsLoader.classList.remove('hidden');
+            resultsTable.classList.add('hidden');
+            paginationContainer.classList.add('hidden');
+
+            const googleKey = googleApiKeyInput.value.trim();
+            const cx = googleCxInput.value.trim();
+
+            try {
+                const data = await searchGooglePSE(googleKey, cx, currentQuery, startIndex);
+                displayResults(data.items || []);
+                renderPagination();
+                selectAllCheckbox.checked = false;
+                updateSelection();
+            } catch (error) {
+                alert("Error fetching page: " + error.message);
+            } finally {
+                resultsLoader.classList.add('hidden');
+                window.scrollTo({ top: resultsCard.offsetTop, behavior: 'smooth' });
+            }
+        }
+
         function updateSelection() {
             const selectedCount = document.querySelectorAll('.lead-checkbox:checked:not(#selectAllResults)').length;
             exportCsvBtn.disabled = selectedCount === 0;
         }
-
+        
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Load/save API keys
             googleApiKeyInput.value = localStorage.getItem('googleApiKey') || '';
             googleCxInput.value = localStorage.getItem('googleCx') || '';
             hunterApiKeyInput.value = localStorage.getItem('hunterApiKey') || '';
@@ -270,7 +348,6 @@
             googleCxInput.addEventListener('change', () => localStorage.setItem('googleCx', googleCxInput.value));
             hunterApiKeyInput.addEventListener('change', () => localStorage.setItem('hunterApiKey', hunterApiKeyInput.value));
 
-            // Main search form submission
             searchForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const googleKey = googleApiKeyInput.value.trim();
@@ -286,7 +363,7 @@
                 resultsLoader.classList.remove('hidden');
                 resultsEmptyState.classList.add('hidden');
                 resultsTable.classList.add('hidden');
-                paginationControls.classList.add('hidden');
+                paginationContainer.classList.add('hidden');
 
                 try {
                     const rawTitles = document.getElementById('jobTitles').value.trim();
@@ -298,15 +375,13 @@
                     const baseQuery = 'site:linkedin.com/in/ -intitle:"profiles" -inurl:"dir/"';
                     currentQuery = [baseQuery, titlesPart, keywordsPart, locationsPart].filter(Boolean).join(' AND ');
                     
-                    currentPage = 1;
-                    foundProfiles = [];
-                    
                     const data = await searchGooglePSE(googleKey, cx, currentQuery, 1);
-                    displayResults(data.items || []);
+                    totalResults = parseInt(data.searchInformation?.totalResults || '0', 10);
+                    currentPage = 1;
                     
-                    if (data.queries?.nextPage) {
-                        paginationControls.classList.remove('hidden');
-                    }
+                    displayResults(data.items || []);
+                    renderPagination();
+                    
                 } catch (error) {
                     resultsEmptyState.innerHTML = `<h3>An error occurred.</h3><p>${error.message}</p>`;
                     resultsEmptyState.classList.remove('hidden');
@@ -318,38 +393,20 @@
                 }
             });
             
-            // "Load More" button
-            loadMoreBtn.addEventListener('click', async () => {
-                loadMoreBtn.disabled = true;
-                loadMoreBtn.textContent = 'Loading...';
-                const googleKey = googleApiKeyInput.value.trim();
-                const cx = googleCxInput.value.trim();
-                
-                try {
-                    currentPage++;
-                    const startIndex = (currentPage - 1) * 10 + 1;
-                    const data = await searchGooglePSE(googleKey, cx, currentQuery, startIndex);
-                    displayResults(data.items || []);
-                    
-                    if (!data.queries?.nextPage) {
-                        paginationControls.classList.add('hidden');
-                    }
-                } catch (error) {
-                    alert("Could not load more results.");
-                } finally {
-                    loadMoreBtn.disabled = false;
-                    loadMoreBtn.textContent = 'Load More Results';
-                }
+            paginationList.addEventListener('click', (e) => {
+                e.preventDefault();
+                const link = e.target.closest('a');
+                if (!link || link.parentElement.classList.contains('disabled')) return;
+                const page = parseInt(link.dataset.page, 10);
+                goToPage(page);
             });
 
-            // "Find Email" button
             resultsTableBody.addEventListener('click', async (e) => {
                 if (e.target.classList.contains('btn-find-email')) {
                     const button = e.target;
                     const hunterKey = hunterApiKeyInput.value.trim();
                     if (!hunterKey) {
-                        alert('Please provide your Hunter.io API Key.');
-                        return;
+                        alert('Please provide your Hunter.io API Key.'); return;
                     }
                     button.disabled = true;
                     button.innerHTML = `<div class="loading-spinner" style="width: 12px; height: 12px; margin: auto;"></div>`;
@@ -362,10 +419,10 @@
                     const email = await findEmailWithHunter(hunterKey, firstName, lastName, profile.company);
                     profile.email = email;
                     row.querySelector('.email-cell').innerHTML = email;
+                    updateSelection();
                 }
             });
 
-            // Selection & Export
             selectAllCheckbox.addEventListener('change', () => {
                 resultsTableBody.querySelectorAll('.lead-checkbox').forEach(cb => cb.checked = selectAllCheckbox.checked);
                 updateSelection();
