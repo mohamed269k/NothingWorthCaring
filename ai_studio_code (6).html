@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IgniteInbox - Leads Gen</title>
+    <link href="https://fonts.googleapis.com/css2?family-Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        /* CORE STYLES (MATCHING YOUR APP) */
+        :root { --brand-orange: #ff4500; --brand-yellow: #ffa500; --bg-dark-1: #0f0f23; --bg-dark-2: #1a1a3a; --bg-dark-3: #2d1b69; --text-light: rgba(255, 255, 255, 0.9); --text-medium: rgba(255, 255, 255, 0.7); --border-color: rgba(255, 255, 255, 0.1); }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--bg-dark-1) 0%, var(--bg-dark-2) 50%, var(--bg-dark-3) 100%); min-height: 100vh; color: var(--text-light); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        h1 { font-size: 2.8rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, var(--brand-yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .tagline { font-size: 1.2rem; font-weight: 600; color: rgba(255, 165, 0, 0.9); }
+        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid var(--border-color); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; }
+        .btn { padding: .75rem 1.5rem; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); color: white; }
+        .btn-secondary { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #fff; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .hidden { display: none !important; }
+        .loading-spinner { border: 4px solid rgba(255,255,255,.3); border-top: 4px solid var(--brand-yellow); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .form-input { width: 100%; padding: .85rem 1rem; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 8px; color: #fff; font-size: 1rem; margin-bottom: 1rem; }
+        .form-label { font-weight: 600; color: var(--text-medium); margin-bottom: 0.5rem; display: block; }
+        .api-key-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table th, .results-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .results-table th { color: var(--brand-yellow); }
+        .lead-checkbox { width: 18px; height: 18px; accent-color: var(--brand-yellow); }
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-medium); border: 2px dashed var(--border-color); border-radius: 16px; }
+        .btn-find-email { padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
+        .help-link { color: var(--brand-yellow); text-decoration: none; font-weight: 500; font-size: 0.9rem; }
+        .help-link:hover { text-decoration: underline; }
+        .pagination-container { text-align: center; margin-top: 2rem; }
+        #shardStatus { margin-top: 1rem; font-style: italic; color: var(--text-medium); min-height: 1.2em; }
+
+        @media (max-width: 768px) {
+            .api-key-grid { grid-template-columns: 1fr; }
+            .results-table thead { display: none; }
+            .results-table tr { display: block; margin-bottom: 1rem; border-radius: 12px; padding: 1rem; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.15); }
+            .results-table td { display: flex; justify-content: space-between; align-items: center; padding: .8rem .5rem; border-bottom: 1px dashed rgba(255,255,255,.1); text-align: right; }
+            .results-table td:last-child { border-bottom: none; }
+            .results-table td::before { content: attr(data-label); font-weight: 600; color: var(--brand-yellow); text-align: left; padding-right: 1rem; flex-shrink: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Leads Gen</h1>
+            <p class="tagline">Find targeted B2B leads from LinkedIn.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🔑</div>
+                <div class="card-title">API Configuration</div>
+            </div>
+            <div class="api-key-grid">
+                <div>
+                    <label for="googleApiKey" class="form-label">Google API Key</label>
+                    <input type="password" id="googleApiKey" class="form-input" placeholder="Your Google Cloud API Key">
+                    <a href="https://developers.google.com/custom-search/v1/overview#api_key" target="_blank" class="help-link">How to get this?</a>
+                </div>
+                <div>
+                    <label for="googleCx" class="form-label">Programmable Search Engine ID (CX)</label>
+                    <input type="password" id="googleCx" class="form-input" placeholder="Your Search Engine ID">
+                     <a href="https://programmablesearchengine.google.com/controlpanel/all" target="_blank" class="help-link">How to create one?</a>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <label for="hunterApiKey" class="form-label">Hunter.io API Key</label>
+                    <input type="password" id="hunterApiKey" class="form-input" placeholder="Your Hunter.io API Key">
+                    <a href="https://hunter.io/api_keys" target="_blank" class="help-link">Get your free key</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🔍</div>
+                <div class="card-title">Search LinkedIn Profiles</div>
+            </div>
+            <form id="searchForm" class="search-grid">
+                <div>
+                    <label for="jobTitles" class="form-label">Job Title(s)</label>
+                    <input type="text" id="jobTitles" class="form-input" placeholder="e.g., Founder, VP of Sales" required>
+                </div>
+                <div>
+                    <label for="keywords" class="form-label">Keywords / Industry</label>
+                    <input type="text" id="keywords" class="form-input" placeholder="e.g., SaaS, Fintech">
+                </div>
+                <div>
+                    <label for="locations" class="form-label">Location(s)</label>
+                    <input type="text" id="locations" class="form-input" placeholder="e.g., London, USA, Canada">
+                </div>
+                <button type="submit" id="findLeadsBtn" class="btn btn-primary" style="align-self: end; height: 50px; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <span>Find Profiles</span>
+                </button>
+            </form>
+        </div>
+
+        <div id="resultsCard" class="card hidden">
+            <div class="card-header">
+                <div class="card-icon">📊</div>
+                <div class="card-title">Results</div>
+            </div>
+            <div id="resultsActionBar" class="hidden" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                 <div id="resultsInfoText" style="font-weight: 500; color: var(--text-medium);"></div>
+                <button id="exportCsvBtn" class="btn btn-secondary" disabled>Export Selected to CSV</button>
+            </div>
+            <div id="resultsContainer">
+                <div id="resultsLoader" class="loading-spinner hidden"></div>
+                <div id="resultsEmptyState" class="empty-state">Your results will appear here.</div>
+                <table id="resultsTable" class="results-table hidden">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllResults" class="lead-checkbox"></th>
+                            <th>Name / Title</th>
+                            <th>Company</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody"></tbody>
+                </table>
+                <div id="paginationContainer" class="pagination-container hidden">
+                    <button id="loadMoreBtn" class="btn btn-secondary"></button>
+                    <div id="shardStatus"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- DOM Elements ---
+        const googleApiKeyInput = document.getElementById('googleApiKey');
+        const googleCxInput = document.getElementById('googleCx');
+        const hunterApiKeyInput = document.getElementById('hunterApiKey');
+        const searchForm = document.getElementById('searchForm');
+        const findLeadsBtn = document.getElementById('findLeadsBtn');
+        const resultsCard = document.getElementById('resultsCard');
+        const resultsLoader = document.getElementById('resultsLoader');
+        const resultsEmptyState = document.getElementById('resultsEmptyState');
+        const resultsTable = document.getElementById('resultsTable');
+        const resultsTableBody = document.getElementById('resultsTableBody');
+        const selectAllCheckbox = document.getElementById('selectAllResults');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const resultsActionBar = document.getElementById('resultsActionBar');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const resultsInfoText = document.getElementById('resultsInfoText');
+        const shardStatus = document.getElementById('shardStatus');
+
+        // --- State Variables ---
+        let allFoundProfiles = []; // Holds all profiles from all searches
+        let currentPage = 1;
+        let currentQuery = '';
+        let totalResults = 0;
+        let searchState = 'idle'; // 'paging', 'sharding_prompt', 'sharding_inprogress', 'done'
+        let shardableRegions = [];
+        let currentShardIndex = 0;
+        
+        const locationData = {
+            "usa": ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"],
+            "canada": ["Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Nova Scotia", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan"]
+        };
+
+        // --- Core API Functions ---
+        async function searchGooglePSE(apiKey, cx, query, start = 1) {
+            const encodedQuery = encodeURIComponent(query);
+            const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodedQuery}&start=${start}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || "Google Search API request failed.");
+            }
+            return await response.json();
+        }
+
+        function guessDomainFromCompanyName(companyName) {
+            if (!companyName) return '';
+            let cleanName = companyName.toLowerCase()
+                .replace(/,?\s+(inc|llc|ltd|gmbh|co|corp|solutions|technologies|group)\.?$/, '')
+                .trim();
+            cleanName = cleanName.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
+            cleanName = cleanName.replace(/\s+/g, '');
+            return `${cleanName}.com`;
+        }
+
+        async function findEmailWithHunter(apiKey, firstName, lastName, companyName) {
+            const domain = guessDomainFromCompanyName(companyName);
+            if (!firstName || !lastName || !domain) return 'Missing Info';
+
+            const url = `https://api.hunter.io/v2/email-finder?domain=${domain}&first_name=${firstName}&last_name=${lastName}&api_key=${apiKey}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) return 'Not Found';
+                const data = await response.json();
+                return data.data?.email || 'Not Found';
+            } catch (error) {
+                return 'Error';
+            }
+        }
+
+        // --- UI Update Functions ---
+        function displayResults(newProfiles, append = false) {
+            if (!append) {
+                resultsTableBody.innerHTML = '';
+                allFoundProfiles = [];
+            }
+
+            const newParsedProfiles = newProfiles.map(item => {
+                const parts = item.title.replace(' - LinkedIn', '').split(' - ');
+                return { name: parts[0] || 'N/A', title: parts[1] || 'N/A', company: parts[2] || 'N/A', email: null };
+            });
+
+            allFoundProfiles.push(...newParsedProfiles);
+
+            newParsedProfiles.forEach(profile => {
+                const row = document.createElement('tr');
+                // Use the overall length to ensure unique index for new items
+                row.dataset.index = allFoundProfiles.length - 1;
+                row.innerHTML = `
+                    <td data-label="Select"><input type="checkbox" class="lead-checkbox"></td>
+                    <td data-label="Name / Title"><strong>${profile.name}</strong><br><small>${profile.title}</small></td>
+                    <td data-label="Company">${profile.company}</td>
+                    <td class="email-cell" data-label="Email"><button class="btn-find-email btn btn-secondary">Find Email</button></td>
+                `;
+                resultsTableBody.appendChild(row);
+            });
+            
+            if(allFoundProfiles.length === 0){
+                resultsEmptyState.innerHTML = '<h3>No LinkedIn profiles found.</h3><p>Try different keywords.</p>';
+                resultsEmptyState.classList.remove('hidden');
+                resultsTable.classList.add('hidden');
+                resultsActionBar.classList.add('hidden');
+            } else {
+                resultsEmptyState.classList.add('hidden');
+                resultsTable.classList.remove('hidden');
+                resultsActionBar.classList.remove('hidden');
+                resultsInfoText.textContent = `Showing ${allFoundProfiles.length} of approx. ${totalResults} leads.`;
+            }
+        }
+        
+        function updateLoadMoreButton() {
+            switch (searchState) {
+                case 'paging':
+                    loadMoreBtn.textContent = `Load More Results (${currentPage * 10} / 100)`;
+                    loadMoreBtn.disabled = false;
+                    paginationContainer.classList.remove('hidden');
+                    shardStatus.textContent = '';
+                    break;
+                case 'sharding_prompt':
+                    loadMoreBtn.textContent = `Continue Search by Region`;
+                    loadMoreBtn.disabled = false;
+                    paginationContainer.classList.remove('hidden');
+                    shardStatus.textContent = 'Reached 100 result limit. Continue searching by specific region to find more.';
+                    break;
+                case 'sharding_inprogress':
+                    loadMoreBtn.textContent = `Searching...`;
+                    loadMoreBtn.disabled = true;
+                    const region = shardableRegions[currentShardIndex];
+                    shardStatus.textContent = `Now searching: ${region}...`;
+                    break;
+                case 'done':
+                    paginationContainer.classList.add('hidden');
+                    shardStatus.textContent = 'All available results loaded.';
+                    break;
+                default:
+                    paginationContainer.classList.add('hidden');
+            }
+        }
+
+        function updateSelection() {
+            const selectedCount = document.querySelectorAll('.lead-checkbox:checked:not(#selectAllResults)').length;
+            exportCsvBtn.disabled = selectedCount === 0;
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            googleApiKeyInput.value = localStorage.getItem('googleApiKey') || '';
+            googleCxInput.value = localStorage.getItem('googleCx') || '';
+            hunterApiKeyInput.value = localStorage.getItem('hunterApiKey') || '';
+            googleApiKeyInput.addEventListener('change', () => localStorage.setItem('googleApiKey', googleApiKeyInput.value));
+            googleCxInput.addEventListener('change', () => localStorage.setItem('googleCx', googleCxInput.value));
+            hunterApiKeyInput.addEventListener('change', () => localStorage.setItem('hunterApiKey', hunterApiKeyInput.value));
+
+            searchForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const googleKey = googleApiKeyInput.value.trim();
+                const cx = googleCxInput.value.trim();
+                if (!googleKey || !cx) {
+                    alert('Please provide both Google API Key and Search Engine ID.');
+                    return;
+                }
+
+                findLeadsBtn.disabled = true;
+                findLeadsBtn.innerHTML = `<div class="loading-spinner"></div>`;
+                resultsCard.classList.remove('hidden');
+                resultsLoader.classList.remove('hidden');
+                resultsEmptyState.classList.add('hidden');
+                resultsTable.classList.add('hidden');
+                paginationContainer.classList.add('hidden');
+                resultsActionBar.classList.add('hidden');
+
+                try {
+                    const rawTitles = document.getElementById('jobTitles').value.trim();
+                    const rawKeywords = document.getElementById('keywords').value.trim();
+                    const rawLocations = document.getElementById('locations').value.trim();
+                    const titlesPart = rawTitles ? `(${rawTitles.split(',').map(t => `"${t.trim()}"`).join(' OR ')})` : '';
+                    const keywordsPart = rawKeywords ? `"${rawKeywords}"` : '';
+                    const locationsPart = rawLocations ? `"${rawLocations}"` : '';
+                    const baseQuery = 'site:linkedin.com/in/ -intitle:"profiles" -inurl:"dir/"';
+                    currentQuery = [baseQuery, titlesPart, keywordsPart, locationsPart].filter(Boolean).join(' AND ');
+                    
+                    const initialData = await searchGooglePSE(googleKey, cx, currentQuery, 1);
+                    totalResults = parseInt(initialData.searchInformation?.totalResults || '0', 10);
+                    currentPage = 1;
+                    
+                    displayResults(initialData.items || []);
+
+                    const locationKey = rawLocations.toLowerCase().trim();
+                    shardableRegions = locationData[locationKey] || [];
+
+                    if (initialData.queries?.nextPage) {
+                        searchState = 'paging';
+                    } else if (totalResults > 90 && shardableRegions.length > 0) {
+                        searchState = 'sharding_prompt';
+                        currentShardIndex = 0;
+                    } else {
+                        searchState = 'done';
+                    }
+                    updateLoadMoreButton();
+
+                } catch (error) {
+                    resultsEmptyState.innerHTML = `<h3>An error occurred.</h3><p>${error.message}</p>`;
+                    resultsEmptyState.classList.remove('hidden');
+                } finally {
+                    findLeadsBtn.disabled = false;
+                    findLeadsBtn.innerHTML = '<span>Find Profiles</span>';
+                    resultsLoader.classList.add('hidden');
+                    updateSelection();
+                }
+            });
+            
+            loadMoreBtn.addEventListener('click', async () => {
+                const googleKey = googleApiKeyInput.value.trim();
+                const cx = googleCxInput.value.trim();
+                loadMoreBtn.disabled = true;
+
+                if (searchState === 'paging') {
+                    currentPage++;
+                    const startIndex = (currentPage - 1) * 10 + 1;
+                    const data = await searchGooglePSE(googleKey, cx, currentQuery, startIndex);
+                    displayResults(data.items || [], true);
+                    
+                    if (data.queries?.nextPage) {
+                        searchState = 'paging';
+                    } else if (totalResults > 90 && shardableRegions.length > 0) {
+                        searchState = 'sharding_prompt';
+                    } else {
+                        searchState = 'done';
+                    }
+                    updateLoadMoreButton();
+                } 
+                else if (searchState === 'sharding_prompt' || searchState === 'sharding_inprogress') {
+                    if (currentShardIndex >= shardableRegions.length) {
+                        searchState = 'done';
+                        updateLoadMoreButton();
+                        return;
+                    }
+
+                    searchState = 'sharding_inprogress';
+                    updateLoadMoreButton();
+
+                    const region = shardableRegions[currentShardIndex];
+                    const originalQueryParts = currentQuery.split(' AND ');
+                    originalQueryParts.pop();
+                    const shardQuery = [...originalQueryParts, `"${region}"`].join(' AND ');
+                    
+                    const data = await searchGooglePSE(googleKey, cx, shardQuery, 1);
+                    displayResults(data.items || [], true);
+
+                    currentShardIndex++;
+                    
+                    if (currentShardIndex < shardableRegions.length) {
+                        searchState = 'sharding_inprogress';
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        loadMoreBtn.click();
+                    } else {
+                        searchState = 'done';
+                        updateLoadMoreButton();
+                    }
+                }
+            });
+
+            resultsTableBody.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('btn-find-email')) {
+                    const button = e.target;
+                    const hunterKey = hunterApiKeyInput.value.trim();
+                    if (!hunterKey) {
+                        alert('Please provide your Hunter.io API Key.'); return;
+                    }
+                    button.disabled = true;
+                    button.innerHTML = `<div class="loading-spinner" style="width: 12px; height: 12px; margin: auto;"></div>`;
+                    const row = button.closest('tr');
+                    const index = parseInt(row.dataset.index, 10);
+                    const profile = allFoundProfiles[index];
+                    const nameParts = profile.name.split(' ');
+                    const firstName = nameParts[0];
+                    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+                    const email = await findEmailWithHunter(hunterKey, firstName, lastName, profile.company);
+                    profile.email = email;
+                    row.querySelector('.email-cell').innerHTML = email;
+                    updateSelection();
+                }
+            });
+
+            selectAllCheckbox.addEventListener('change', () => {
+                resultsTableBody.querySelectorAll('.lead-checkbox').forEach(cb => cb.checked = selectAllCheckbox.checked);
+                updateSelection();
+            });
+            resultsTableBody.addEventListener('change', (e) => { if(e.target.classList.contains('lead-checkbox')) updateSelection(); });
+
+            exportCsvBtn.addEventListener('click', () => {
+                const leadsToExport = [];
+                resultsTableBody.querySelectorAll('.lead-checkbox:checked').forEach(cb => {
+                    const index = parseInt(cb.closest('tr').dataset.index, 10);
+                    const profile = allFoundProfiles[index];
+                    leadsToExport.push({
+                        FirstName: profile.name.split(' ')[0] || '',
+                        LastName: profile.name.split(' ').slice(1).join(' ') || '',
+                        Email: profile.email || 'Not Found',
+                        Role: profile.title,
+                        Company: profile.company
+                    });
+                });
+                if (leadsToExport.length === 0) return;
+                
+                const worksheet = XLSX.utils.json_to_sheet(leadsToExport);
+                const csvString = XLSX.utils.sheet_to_csv(worksheet);
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'igniteinbox_leads.csv';
+                link.click();
+            });
+        });
+    </script>
+</body>
+</html>
