@@ -34,6 +34,22 @@
         .help-link { color: var(--brand-yellow); text-decoration: none; font-weight: 500; font-size: 0.9rem; }
         .help-link:hover { text-decoration: underline; }
 
+        /* DEBUG LOG STYLES */
+        #debugLog {
+            background-color: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+
         @media (max-width: 768px) {
             .api-key-grid { grid-template-columns: 1fr; }
         }
@@ -95,13 +111,18 @@
         <div id="resultsCard" class="card hidden">
             <div class="card-header">
                 <div class="card-icon">📊</div>
-                <div class="card-title">Results</div>
+                <div class="card-title">Results & Analysis</div>
             </div>
             
             <div id="progressContainer" class="hidden" style="margin-bottom: 2rem;">
                 <div id="statusText" style="font-weight: 600; margin-bottom: 0.75rem;">Initializing...</div>
                 <div style="width: 100%; background: rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
                     <div id="progressBar" style="width: 0%; height: 12px; background: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow)); transition: width 0.5s ease;"></div>
+                </div>
+                <!-- Debug Log will now be part of the progress -->
+                <div id="debugLogContainer" class="hidden">
+                    <h4 style="color: var(--brand-yellow); margin-top: 1.5rem; margin-bottom: 1rem;">Gemini Raw Response Log</h4>
+                    <div id="debugLog"></div>
                 </div>
             </div>
 
@@ -142,6 +163,8 @@
         const progressBar = document.getElementById('progressBar');
         const selectAllCheckbox = document.getElementById('selectAllResults');
         const resultsEmptyState = document.getElementById('resultsEmptyState');
+        const debugLogContainer = document.getElementById('debugLogContainer');
+        const debugLog = document.getElementById('debugLog');
 
         // --- State & Config ---
         const firebaseConfig = {
@@ -190,39 +213,38 @@
             return await response.text();
         }
 
-        // --- Phase 3: Data Extraction (IMPROVED) ---
+        // --- Phase 3: Data Extraction (with Debugging) ---
         async function extractDataWithGemini(htmlContent) {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `
-                You are a data extraction expert. Analyze the following raw HTML from a LinkedIn profile.
-                Your task is to find the person's full name, their most current job title, and the name of their current company.
-                The HTML is complex and may contain a lot of irrelevant code. Search for common patterns like h1 tags for the name, and text related to "Current" or "Present" for the job.
-                You MUST return ONLY a single, valid JSON object and nothing else. No explanations, no markdown.
-                
-                Use this exact format:
-                {"fullName": "...", "title": "...", "company": "..."}
+            const prompt = `You are a data extraction expert. Analyze the following raw HTML from a LinkedIn profile. Your task is to find the person's full name, their most current job title, and the name of their current company. The HTML is complex and may contain a lot of irrelevant code. Search for common patterns like h1 tags for the name, and text related to "Current" or "Present" for the job. You MUST return ONLY a single, valid JSON object and nothing else. No explanations, no markdown. Use this exact format: {"fullName": "...", "title": "...", "company": "..."}. If you cannot find a specific piece of information, return null for that field's value. HTML to analyze: ${htmlContent.substring(0, 30000)}`;
 
-                If you cannot find a specific piece of information, return null for that field's value.
-                
-                HTML to analyze:
-                ${htmlContent.substring(0, 30000)}
-            `;
-
-            const result = await model.generateContent(prompt);
-            const rawText = result.response.text();
-            console.log("Raw Gemini Response:", rawText); // CRITICAL: For debugging
-
-            // Use a regular expression to find the JSON object within the text
-            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                console.error("No JSON object found in Gemini's response.");
-                return null;
-            }
-            
             try {
+                const result = await model.generateContent(prompt);
+                const rawText = result.response.text();
+                
+                // Log the raw response for debugging
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `<strong>Response:</strong><br>${rawText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}<hr style="border-color: #333; margin: 0.5rem 0;">`;
+                debugLog.appendChild(logEntry);
+
+                // Use a robust regex to find the JSON object within the text
+                const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    console.error("No JSON object found in Gemini's response.");
+                    return null;
+                }
+                
                 return JSON.parse(jsonMatch[0]);
-            } catch (e) {
-                console.error("Failed to parse JSON from Gemini:", jsonMatch[0]);
+
+            } catch (error) {
+                console.error("Error during Gemini extraction:", error);
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `<strong style="color: #f28b82;">Error:</strong><br>${error.message}<hr style="border-color: #333; margin: 0.5rem 0;">`;
+                debugLog.appendChild(logEntry);
+                // Check for safety feedback from the API response if available
+                if (error.response && error.response.promptFeedback?.blockReason) {
+                    throw new Error(`Blocked by safety settings: ${error.response.promptFeedback.blockReason}`);
+                }
                 return null;
             }
         }
@@ -237,7 +259,7 @@
                 resultsTable.classList.add('hidden');
                 resultsActionBar.classList.add('hidden');
                 resultsEmptyState.classList.remove('hidden');
-                resultsEmptyState.innerHTML = '<h3>No valid profiles could be analyzed.</h3><p>Try broader search terms, check your API keys, or see the console for details.</p>';
+                resultsEmptyState.innerHTML = '<h3>No valid profiles could be analyzed.</h3><p>Try broader search terms, check your API keys, or see the log above for details.</p>';
                 return;
             }
 
@@ -293,6 +315,8 @@
                 resultsTable.classList.add('hidden');
                 resultsActionBar.classList.add('hidden');
                 resultsEmptyState.classList.add('hidden');
+                debugLogContainer.classList.remove('hidden');
+                debugLog.innerHTML = '';
                 extractedLeads = [];
                 progressBar.style.backgroundColor = '';
 
@@ -316,7 +340,7 @@
                     for (let i = 0; i < uniqueUrls.length; i++) {
                         const url = uniqueUrls[i];
                         const progress = 10 + Math.floor((i / uniqueUrls.length) * 80);
-                        updateProgress(`Step 2/3: Analyzing profile ${i + 1} of ${uniqueUrls.length}...`, progress);
+                        updateProgress(`Step 2/3: Analyzing profile ${i + 1} of ${uniqueUrls.length} (${url.split('/in/')[1]}) ...`, progress);
                         
                         try {
                             const html = await scrapeProfileContent(scraperKey, url);
@@ -337,10 +361,13 @@
                             }
                         } catch (scrapeError) {
                             console.warn(`Could not process ${url}: ${scrapeError.message}`);
+                            const logEntry = document.createElement('div');
+                            logEntry.innerHTML = `<strong style="color: #f28b82;">Scrape Error for ${url}:</strong><br>${scrapeError.message}<hr style="border-color: #333; margin: 0.5rem 0;">`;
+                            debugLog.appendChild(logEntry);
                         }
                     }
 
-                    updateProgress("Step 3/3: Process complete!", 100);
+                    updateProgress("Step 3/3: Process complete! Review results below.", 100);
                     displayResults();
 
                 } catch (error) {
