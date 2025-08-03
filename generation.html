@@ -3,265 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IgniteInbox - Generating Emails...</title>
+    <title>IgniteInbox - Email Studio</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* --- CORE STYLES (MATCHING YOUR EXISTING APP) --- */
-        :root { /* CSS variables for consistency */ }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #2d1b69 100%); min-height: 100vh; color: rgba(255,255,255,0.9); }
-        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-        .header { text-align: center; margin-bottom: 2rem; margin-top: 1rem; }
-        h1 { font-size: 2.5rem; background: linear-gradient(135deg, #ffffff 0%, #ffa500 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .tagline { font-size: 1.1rem; color: rgba(255, 165, 0, 0.9); }
-        .btn-secondary { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #fff; padding: .75rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
-        .loading-spinner { border: 3px solid rgba(255,255,255,.2); border-top-color: #ffa500; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* --- PAGE-SPECIFIC STYLES --- */
-        .status-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-        .status-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        #generationStatusText {
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .email-history-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .email-card {
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            overflow: hidden; /* To contain the border-radius */
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeIn 0.5s ease forwards;
-        }
-        @keyframes fadeIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .email-card-header {
-            padding: 1rem 1.5rem;
-            background: rgba(255,255,255,0.05);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .email-recipient { font-weight: 600; color: #ffa500; }
-        .email-subject { margin-top: 0.25rem; color: rgba(255,255,255,0.8); }
-
-        .email-body {
-            padding: 1.5rem;
-            white-space: pre-wrap; /* Preserves line breaks from the AI */
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: rgba(255,255,255,0.85);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark-theme">
     <div class="container">
         <div class="header">
-            <h1>Email Generation in Progress</h1>
-            <p class="tagline" id="campaignInfoText"></p>
+            <h1>Email Studio</h1>
+            <p class="tagline" id="studioSubheading">Generating emails for 3 prospects...</p>
         </div>
 
-        <div class="status-card">
-            <div class="status-header">
-                <div id="spinner" class="loading-spinner"></div>
-                <div id="generationStatusText">Initializing...</div>
+        <!-- Main Editor Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <div class="card-icon">✏️</div>
+                    <div class="card-title">Compose & Edit</div>
+                </div>
+                <div id="email-navigation" class="email-counter">
+                    <button class="nav-btn" id="prevBtn">‹</button>
+                    <span id="counter">1 / 3</span>
+                    <button class="nav-btn" id="nextBtn">›</button>
+                </div>
             </div>
-            <p id="finalMessage" class="hidden" style="margin-top: 1rem;">
-                All emails have been generated! You can review them below.
-                <br><br>
-                <a href="campaigns.html" class="btn-secondary">Back to Campaigns</a>
-            </p>
-        </div>
 
-        <div id="emailHistoryContainer" class="email-history-container">
-            <!-- Generated emails will be injected here -->
+            <div class="recipient-info" id="recipientInfo">For: John Doe @ Acme Inc.</div>
+
+            <!-- Subject Input -->
+            <label for="emailSubject" class="form-label">Subject:</label>
+            <input type="text" id="emailSubject" class="form-input" placeholder="Your email subject line...">
+
+            <!-- Variable Toolbar -->
+            <div class="variable-toolbar" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <label class="form-label" style="margin-bottom: 0;">Insert:</label>
+                <button class="btn-secondary btn-variable" style="padding: 0.2rem 0.6rem; font-size: 0.8rem;">[FirstName]</button>
+                <button class="btn-secondary btn-variable" style="padding: 0.2rem 0.6rem; font-size: 0.8rem;">[LastName]</button>
+                <button class="btn-secondary btn-variable" style="padding: 0.2rem 0.6rem; font-size: 0.8rem;">[Company]</button>
+                <button class="btn-secondary btn-variable" style="padding: 0.2rem 0.6rem; font-size: 0.8rem;">[Role]</button>
+            </div>
+
+            <!-- Body Textarea -->
+            <textarea id="emailBody" class="form-input" rows="12" placeholder="Your email body..."></textarea>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons" style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                <button id="saveTemplateBtn" class="btn-secondary">Save as Template</button>
+                <button id="sendEmailBtn" class="btn-primary" style="background: linear-gradient(135deg, #34a853, #4285f4);">Send Email</button>
+            </div>
         </div>
     </div>
 
-    <!-- Firebase and Gemini AI Scripts -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.mjs"></script>
+    <!-- Save Template Modal -->
+    <div id="saveTemplateModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Save Email Template</h2>
+                <button id="modalCloseBtn" class="modal-close-btn">×</button>
+            </div>
+            <form id="saveTemplateForm">
+                <label for="templateName" class="form-label">Template Name:</label>
+                <input type="text" id="templateName" class="form-input" placeholder="e.g., Q4 Follow-up" required>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Template</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase and Page-specific Scripts -->
     <script type="module">
-        // ===================================================================
-        // --- IMPORTS & CONFIGURATION ---
-        // ===================================================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
         import { GoogleGenerativeAI } from "https://cdn.jsdelivr.net/npm/@google/generative-ai@0.1.0/dist/index.mjs";
+        import { firebaseConfig } from './firebase-config.js';
 
-        // IMPORTANT: Paste your keys and config here
-        const GEMINI_API_KEY = "AIzaSyAMIen9b701UekKNPVEuICV42kFZmhoUs4";
-        const firebaseConfig = {
-            apiKey: "AIzaSyDmWNfHVuzEZariM7hPunt3zXeEXKSBlk0",
-            authDomain: "project01-6dc41.firebaseapp.com",
-            projectId: "project01-6dc41",
-            storageBucket: "project01-6dc41.firebasestorage.app",
-            messagingSenderId: "714586325510",
-            appId: "1:714586325510:web:8d57e4654877ff298b7987",
-            measurementId: "G-0BM2TWETQW"
-        };
-        
+        // --- Initialize Firebase ---
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        let currentUser = null;
+        let genAI = null;
 
-        // ===================================================================
-        // --- CORE GENERATION LOGIC ---
-        // ===================================================================
-        
-        // This is the main function that runs when the page loads
-        // In generation.html, inside the <script type="module">
-// REPLACE this entire function with the bare-bones version.
+        // --- App State ---
+        let generatedEmails = [];
+        let currentEmailIndex = 0;
 
-// In generation.html, inside the <script type="module">
-// REPLACE this entire function.
+        // --- DOM Elements ---
+        const subheading = document.getElementById('studioSubheading');
+        const recipientInfo = document.getElementById('recipientInfo');
+        const emailSubject = document.getElementById('emailSubject');
+        const emailBody = document.getElementById('emailBody');
+        const counterDisplay = document.getElementById('counter');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const saveTemplateBtn = document.getElementById('saveTemplateBtn');
+        const saveTemplateModal = document.getElementById('saveTemplateModal');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const saveTemplateForm = document.getElementById('saveTemplateForm');
+        const templateNameInput = document.getElementById('templateName');
+        const variableButtons = document.querySelectorAll('.btn-variable');
 
-async function startGenerationProcess() {
-    const statusText = document.getElementById('generationStatusText');
-    const spinner = document.getElementById('spinner');
-    
-    // --- THIS IS THE DEBUGGING SECTION ---
-    console.log("Starting generation process...");
-    
-    const taskDataString = localStorage.getItem('igniteinbox_generation_task');
-    console.log("1. Raw data string from localStorage:", taskDataString);
+        // --- Main Functions ---
 
-    if (!taskDataString) {
-        statusText.textContent = "Error: No task data found. Please go back to the campaigns page and try generating again.";
-        spinner.classList.add('hidden');
-        return; // Stop execution
-    }
-    
-    const taskData = JSON.parse(taskDataString);
-    console.log("2. Parsed taskData object:", taskData);
-
-    if (!taskData || !taskData.userId || !taskData.campaignId || !taskData.leadIds) {
-        statusText.textContent = "Error: Task data is incomplete or invalid.";
-        spinner.classList.add('hidden');
-        console.error("Invalid task data:", taskData);
-        return; // Stop execution
-    }
-    // --- END OF DEBUGGING SECTION ---
-
-
-    // --- Now, we continue with the rest of the function ---
-    statusText.textContent = "Fetching data...";
-    const campaignDoc = await getDoc(doc(db, "users", taskData.userId, "campaigns", taskData.campaignId));
-    if (!campaignDoc.exists()) {
-        statusText.textContent = "Error: Campaign could not be found in the database.";
-        spinner.classList.add('hidden');
-        return;
-    }
-    const campaignData = campaignDoc.data();
-    document.getElementById('campaignInfoText').textContent = `Campaign: ${campaignData.name}`;
-
-    const senderDoc = await getDoc(doc(db, "senderProfiles", taskData.userId));
-    const senderData = senderDoc.data();
-    
-    // ... the rest of your generation loop ...
-    for (let i = 0; i < taskData.leadIds.length; i++) {
-        // ...
-    }
-
-    statusText.textContent = "Process Finished.";
-    spinner.classList.add('hidden');
-    document.getElementById('finalMessage').classList.remove('hidden');
-    localStorage.removeItem('igniteinbox_generation_task');
-        }
-
-        /**
-         * Generates one email using the Gemini API.
-         * This function is similar to the one on your index page.
-         */
-        async function generateSingleEmail(goal, sender, prospect) {
+        async function initializeAI() {
             try {
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const prompt = `
-                    Write a personalized cold outreach email.
-                    SENDER: ${sender.firstName} ${sender.lastName}, ${sender.role} at ${sender.company}.
-                    PROSPECT: ${prospect.FirstName} ${prospect.LastName}, ${prospect.Role} at ${prospect.Company}.
-                    GOAL: ${goal}.
-                    REQUIREMENTS:
-                    1. Be concise (around 150 words).
-                    2. Sound professional but conversational.
-                    3. Create a compelling subject line.
-                    4. IMPORTANT: Do NOT include a closing or signature (e.g., "Best regards,").
-                    OUTPUT FORMAT (Strict):
-                    Subject: [Your subject line]
-                    
-                    [Email body]
-                `;
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const emailContent = response.text();
-
-                const subjectMatch = emailContent.match(/Subject:\s*(.+)/i);
-                const subject = subjectMatch ? subjectMatch[1].trim() : `A message for ${prospect.Company}`;
-                const body = emailContent.replace(/Subject:\s*.+\n*/i, '').trim();
-
-                return { subject, body };
+                const API_KEY = 'AIzaSyAMIen9b701UekKNPVEuICV42kFZmhoUs4';
+                genAI = new GoogleGenerativeAI(API_KEY);
             } catch (error) {
-                console.error("Error generating email:", error);
-                throw new Error(`Failed to generate email for ${prospect.FirstName} ${prospect.LastName}: ${error.message}`);
+                console.error('Failed to initialize AI:', error);
+                subheading.textContent = "Error: Could not initialize AI service.";
             }
         }
 
-        /**
-         * Creates and appends an email card to the history container.
-         */
-        function appendEmailToHistory(emailData) {
-            const container = document.getElementById('emailHistoryContainer');
-            const card = document.createElement('div');
-            card.className = 'email-card';
-            
-            const fullBody = `${emailData.body}\n\n// This email has been generated and saved to your campaign history.`;
+        async function generateSingleEmail(task, prospect) {
+            const prompt = `
+            Write a personalized cold outreach email in ${task.language}.
+            SENDER: ${task.senderInfo.firstName} ${task.senderInfo.lastName}, ${task.senderInfo.role} at ${task.senderInfo.company}. Background: ${task.senderInfo.bio}.
+            PROSPECT: ${prospect.FirstName} ${prospect.LastName}, ${prospect.Role} at ${prospect.Company}.
+            GOAL: ${task.purpose}.
+            REQUIREMENTS:
+            1. Personalize using both sender and prospect info.
+            2. Be concise (150-200 words).
+            3. Sound professional but conversational.
+            4. Create a compelling subject line in ${task.language}.
+            5. Do NOT include a closing or signature (e.g., "Best regards,").
+            OUTPUT FORMAT (Strict):
+            Subject: [Your subject line in ${task.language}]
 
-            card.innerHTML = `
-                <div class="email-card-header">
-                    <div class="email-recipient">To: ${emailData.recipient.name}</div>
-                    <div class="email-subject">Subject: ${emailData.subject}</div>
-                </div>
-                <div class="email-body">${fullBody}</div>
+            [Email body in ${task.language}]
             `;
-            container.appendChild(card);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(prompt);
+            return result.response.text();
         }
 
-        /**
-         * Creates and appends an error card to the history container.
-         */
-        function appendErrorCardToHistory(leadId, errorMessage) {
-            const container = document.getElementById('emailHistoryContainer');
-            const card = document.createElement('div');
-            card.className = 'email-card';
-            card.style.borderColor = '#f28b82'; // Red border for error
-            card.innerHTML = `
-                <div class="email-card-header" style="background-color: rgba(234, 67, 53, 0.1);">
-                    <div class="email-recipient" style="color: #f28b82;">Failed to generate for Lead ID: ${leadId.substring(0, 5)}...</div>
-                </div>
-                <div class="email-body"><strong>Error:</strong> ${errorMessage}</div>
-            `;
-            container.appendChild(card);
+        function updateEditorDisplay() {
+            if (generatedEmails.length === 0) return;
+
+            const currentEmail = generatedEmails[currentEmailIndex];
+            recipientInfo.textContent = `For: ${currentEmail.prospect.FirstName} ${currentEmail.prospect.LastName} @ ${currentEmail.prospect.Company}`;
+            emailSubject.value = currentEmail.subject;
+            emailBody.value = currentEmail.body;
+            counterDisplay.textContent = `${currentEmailIndex + 1} / ${generatedEmails.length}`;
+
+            prevBtn.disabled = currentEmailIndex === 0;
+            nextBtn.disabled = currentEmailIndex === generatedEmails.length - 1;
         }
 
-        // Run the process as soon as the page loads
-        document.addEventListener('DOMContentLoaded', startGenerationProcess);
+        async function loadGenerationData() {
+            const taskDataString = localStorage.getItem('igniteinbox_generation_task');
+            if (!taskDataString) {
+                subheading.textContent = "No generation task found. Please start from the main page.";
+                return;
+            }
+
+            const taskData = JSON.parse(taskDataString);
+            subheading.textContent = `Generating 0/${taskData.prospects.length} emails...`;
+
+            for (let i = 0; i < taskData.prospects.length; i++) {
+                const prospect = taskData.prospects[i];
+                try {
+                    const emailContent = await generateSingleEmail(taskData, prospect);
+                    const subjectMatch = emailContent.match(/Subject:\s*(.+)/i);
+                    const subject = subjectMatch ? subjectMatch[1].trim() : `A message for ${prospect.Company}`;
+                    const body = emailContent.replace(/Subject:\s*.+\n*/i, '').trim();
+                    generatedEmails.push({ prospect, subject, body });
+                } catch (error) {
+                    console.error(`Failed to generate email for ${prospect.FirstName}:`, error);
+                    generatedEmails.push({ prospect, subject: "Generation Failed", body: `Could not generate email for this prospect. Error: ${error.message}` });
+                }
+                subheading.textContent = `Generating ${i + 1}/${taskData.prospects.length} emails...`;
+            }
+
+            subheading.textContent = `Generation complete! Review and edit your emails below.`;
+            localStorage.removeItem('igniteinbox_generation_task');
+            updateEditorDisplay();
+        }
+
+        // --- Event Listeners ---
+        prevBtn.addEventListener('click', () => {
+            if (currentEmailIndex > 0) {
+                currentEmailIndex--;
+                updateEditorDisplay();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentEmailIndex < generatedEmails.length - 1) {
+                currentEmailIndex++;
+                updateEditorDisplay();
+            }
+        });
+
+        variableButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const variable = button.textContent;
+                const start = emailBody.selectionStart;
+                const end = emailBody.selectionEnd;
+                const text = emailBody.value;
+                emailBody.value = text.substring(0, start) + variable + text.substring(end);
+                emailBody.focus();
+                emailBody.selectionEnd = start + variable.length;
+            });
+        });
+
+        saveTemplateBtn.addEventListener('click', () => {
+            if (!emailSubject.value.trim() || !emailBody.value.trim()) {
+                alert('Please provide a subject and body before saving a template.');
+                return;
+            }
+            saveTemplateModal.classList.remove('hidden');
+        });
+
+        modalCloseBtn.addEventListener('click', () => saveTemplateModal.classList.add('hidden'));
+
+        saveTemplateForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return alert('You must be logged in.');
+            const templateName = templateNameInput.value.trim();
+            if (!templateName) return alert('Please provide a name for your template.');
+
+            const templateData = { name: templateName, subject: emailSubject.value, body: emailBody.value, createdAt: serverTimestamp() };
+            try {
+                await addDoc(collection(db, "users", currentUser.uid, "templates"), templateData);
+                alert(`Template "${templateName}" saved!`);
+                saveTemplateModal.classList.add('hidden');
+                saveTemplateForm.reset();
+            } catch (error) {
+                console.error("Error saving template:", error);
+                alert('Could not save template.');
+            }
+        });
+
+        // --- Page Initialization ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                await initializeAI();
+                await loadGenerationData();
+            } else {
+                window.location.replace('/loginsignupsys.html');
+            }
+        });
     </script>
 </body>
 </html>
