@@ -6,15 +6,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
 // --- 2. FIREBASE CONFIGURATION ---
-const firebaseConfig = {
-    apiKey: "AIzaSyDmWNfHVuzEZariM7hPunt3zXeEXKSBlk0",
-    authDomain: "project01-6dc41.firebaseapp.com",
-    projectId: "project01-6dc41",
-    storageBucket: "project01-6dc41.firebasestorage.app",
-    messagingSenderId: "714586325510",
-    appId: "1:714586325510:web:8d57e4654877ff298b7987",
-    measurementId: "G-0BM2TWETQW"
-};
+import { firebaseConfig } from './firebase-config.js';
 
 // --- 3. FIREBASE INITIALIZATION ---
 const app = initializeApp(firebaseConfig);
